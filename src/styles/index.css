@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Variables safe area ─────────────────────────────────────── */
+:root {
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+}
+
+/* ── Reset ───────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background: #F5F5F7;
+}
+
+/* ── Animations (transform+opacity uniquement pour 60fps) ─────── */
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);   opacity: 1; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.05); }
+}
+
+/* ── Respect prefers-reduced-motion ─────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ── Focus visible (accessibilité clavier) ───────────────────── */
+:focus-visible {
+  outline: 3px solid #0066FF;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ── Scrollbar discrète ──────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 2px; }
+
+/* ── MapLibre overrides ──────────────────────────────────────── */
+.maplibregl-ctrl-attrib { font-size: 9px !important; opacity: 0.6; }
+.maplibregl-ctrl-group {
+  border: none !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12) !important;
+  border-radius: 12px !important;
+  overflow: hidden;
+}
+.maplibregl-ctrl button {
+  width: 44px !important;
+  height: 44px !important;
+}
