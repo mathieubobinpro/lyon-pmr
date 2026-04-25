@@ -1,11 +1,12 @@
 import { type ReactNode } from 'react';
-import { Sun, Moon, Type, Info, MapPin } from 'lucide-react';
+import { Sun, Moon, Type, Info, MapPin, Database } from 'lucide-react';
 import type { FontSize } from '../../types';
 import { useInstallPrompt } from '../../hooks/useInstallPrompt';
 
 interface Props {
   dark: boolean;
   fontSize: FontSize;
+  dataUpdatedAt?: number | null;
   onSetDark: (v: boolean) => void;
   onSetFontSize: (v: FontSize) => void;
 }
@@ -69,7 +70,11 @@ function Toggle({ checked, onChange, label, dark }: { checked: boolean; onChange
   );
 }
 
-export function SettingsScreen({ dark, fontSize, onSetDark, onSetFontSize }: Props) {
+function formatDataDate(ts: number): string {
+  return new Date(ts).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+}
+
+export function SettingsScreen({ dark, fontSize, dataUpdatedAt, onSetDark, onSetFontSize }: Props) {
   const { canInstall, installed, triggerInstall } = useInstallPrompt();
 
   const FONT_OPTIONS: { value: FontSize; label: string; size: number }[] = [
@@ -171,6 +176,16 @@ export function SettingsScreen({ dark, fontSize, onSetDark, onSetFontSize }: Pro
         {/* À propos */}
         <SectionTitle label="À propos" />
         <div style={{ background: dark ? '#1E1E1E' : '#FFFFFF' }}>
+          <Row
+            dark={dark}
+            icon={<Database size={20} color="#0066FF" aria-hidden />}
+            label="Données PMR"
+            right={
+              <span style={{ fontSize: 13, color: dataUpdatedAt ? '#22C55E' : '#6B7280', fontWeight: 600 }}>
+                {dataUpdatedAt ? formatDataDate(dataUpdatedAt) : 'Chargement…'}
+              </span>
+            }
+          />
           <Row dark={dark} icon={<Info size={20} color="#0066FF" aria-hidden />} label="Source des données" />
           <div style={{
             padding: '0 20px 16px',

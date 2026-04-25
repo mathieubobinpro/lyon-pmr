@@ -31,6 +31,7 @@ export default function App() {
   const [tab, setTab]               = useState<ActiveTab>('map');
   const [allSpots, setAllSpots]     = useState<ParkingSpot[]>(MOCK_SPOTS);
   const [offlineSavedAt, setOfflineSavedAt] = useState<number | null>(null);
+  const [dataUpdatedAt, setDataUpdatedAt]   = useState<number | null>(null);
   const [dark, setDark]             = useState(() => storage.getDarkMode());
   const [fontSize, setFontSize]     = useState<FontSize>(() => storage.getFontSize());
 
@@ -45,21 +46,26 @@ export default function App() {
     onRegisterError: (e: unknown) => console.warn('[Lyon PMR] SW erreur', e),
   });
 
-  // Chargement initial des spots (réseau → IndexedDB → mock)
+  // Chargement initial : IndexedDB → réseau si données périmées (> 24h) ou absentes
   useEffect(() => {
     (async () => {
-      // Tente le cache IndexedDB d'abord pour un affichage immédiat
-      const { spots: cached, savedAt } = await getCachedSpots();
+      const { spots: cached, savedAt, isStale } = await getCachedSpots();
+
+      // Affichage immédiat depuis le cache
       if (cached.length > 0) {
         setAllSpots(cached);
         setOfflineSavedAt(savedAt);
+        setDataUpdatedAt(savedAt);
       }
 
-      if (isOnline) {
+      // Fetch réseau seulement si en ligne ET cache absent ou périmé
+      if (isOnline && (isStale || cached.length === 0)) {
         const fresh = await fetchParkingSpots();
+        const now = Date.now();
         setAllSpots(fresh);
         await cacheSpots(fresh);
         setOfflineSavedAt(null);
+        setDataUpdatedAt(now);
       }
     })();
     storage.bumpVisitCount();
@@ -153,6 +159,7 @@ export default function App() {
           <SettingsScreen
             dark={dark}
             fontSize={fontSize}
+            dataUpdatedAt={dataUpdatedAt}
             onSetDark={handleSetDark}
             onSetFontSize={handleSetFontSize}
           />
