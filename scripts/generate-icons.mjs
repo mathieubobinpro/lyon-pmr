@@ -90,4 +90,24 @@ for (const [filename, label] of screenshots) {
   console.log(`✓ screenshots/${filename}`);
 }
 
+// Splash screens iOS (fond bleu #0066FF + icône centrée)
+const SPLASH_DIR = path.join(__dirname, '..', 'public', 'splash');
+await mkdir(SPLASH_DIR, { recursive: true });
+
+const splashSizes = [
+  ['splash-750x1334.png',   750,  1334],  // iPhone SE
+  ['splash-1170x2532.png', 1170, 2532],  // iPhone 14
+  ['splash-1290x2796.png', 1290, 2796],  // iPhone 14 Pro Max
+];
+
+for (const [filename, w, h] of splashSizes) {
+  const iconSize = Math.round(Math.min(w, h) * 0.28);
+  const iconPng = await sharp(Buffer.from(iconSvg(iconSize, false))).png().toBuffer();
+  await sharp({ create: { width: w, height: h, channels: 4, background: { r: 0, g: 102, b: 255, alpha: 1 } } })
+    .composite([{ input: iconPng, gravity: 'center' }])
+    .png()
+    .toFile(path.join(SPLASH_DIR, filename));
+  console.log(`✓ splash/${filename}`);
+}
+
 console.log('\nToutes les icônes générées avec succès !');
