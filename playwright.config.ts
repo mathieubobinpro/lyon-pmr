@@ -12,8 +12,12 @@ export default defineConfig({
     {
       name: 'Mobile Chrome (iPhone 12)',
       use: {
-        ...devices['iPhone 12'],
-        channel: 'chromium',
+        browserName: 'chromium',
+        viewport: { width: 390, height: 844 },
+        deviceScaleFactor: 3,
+        isMobile: true,
+        hasTouch: true,
+        userAgent: devices['iPhone 12'].userAgent,
       },
     },
   ],
