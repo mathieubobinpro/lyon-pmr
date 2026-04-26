@@ -35,12 +35,11 @@ export default function App() {
   const [dataUpdatedAt, setDataUpdatedAt]   = useState<number | null>(null);
   const [dark, setDark]             = useState(() => storage.getDarkMode());
   const [fontSize, setFontSize]     = useState<FontSize>(() => storage.getFontSize());
-  const [radiusM, setRadiusM]       = useState(2000);
   const [locateTrigger, setLocateTrigger] = useState(0);
 
   const isOnline = useOnlineStatus();
   const { coords: userCoords, retry: retryGeoloc } = useGeolocation();
-  const nearbySpots = useNearestSpots(allSpots, userCoords, radiusM);
+  const nearbySpots = useNearestSpots(allSpots, userCoords, 2000);
   const { favorites, addFavorite, removeFavorite, isFavorite } = useFavorites();
 
   // Service Worker — update flow
@@ -140,9 +139,7 @@ export default function App() {
             favorites={favorites}
             dark={dark}
             fontSize={fontSize}
-            radiusM={radiusM}
             locateTrigger={locateTrigger}
-            onSetRadius={setRadiusM}
             onFlyTo={handleFlyTo}
             onToggleFavorite={handleToggleFavorite}
             onLocate={handleLocate}
