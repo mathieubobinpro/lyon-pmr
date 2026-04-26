@@ -26,3 +26,5 @@ coverage/
 dist/
 dev-dist/
 .claude/
+test-results/
+playwright-report/

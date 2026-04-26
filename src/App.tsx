@@ -30,14 +30,16 @@ export default function App() {
   const [splash, setSplash]         = useState(true);
   const [tab, setTab]               = useState<ActiveTab>('map');
   const [allSpots, setAllSpots]     = useState<ParkingSpot[]>(MOCK_SPOTS);
+  const [loading, setLoading]       = useState(true);
   const [offlineSavedAt, setOfflineSavedAt] = useState<number | null>(null);
   const [dataUpdatedAt, setDataUpdatedAt]   = useState<number | null>(null);
   const [dark, setDark]             = useState(() => storage.getDarkMode());
   const [fontSize, setFontSize]     = useState<FontSize>(() => storage.getFontSize());
+  const [radiusM, setRadiusM]       = useState(2000);
 
   const isOnline = useOnlineStatus();
   const { coords: userCoords, retry: retryGeoloc } = useGeolocation();
-  const nearbySpots = useNearestSpots(allSpots, userCoords);
+  const nearbySpots = useNearestSpots(allSpots, userCoords, radiusM);
   const { favorites, addFavorite, removeFavorite, isFavorite } = useFavorites();
 
   // Service Worker — update flow
@@ -56,6 +58,7 @@ export default function App() {
         setAllSpots(cached);
         setOfflineSavedAt(savedAt);
         setDataUpdatedAt(savedAt);
+        setLoading(false);
       }
 
       // Fetch réseau seulement si en ligne ET cache absent ou périmé
@@ -67,6 +70,7 @@ export default function App() {
         setOfflineSavedAt(null);
         setDataUpdatedAt(now);
       }
+      setLoading(false);
     })();
     storage.bumpVisitCount();
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -130,6 +134,8 @@ export default function App() {
             favorites={favorites}
             dark={dark}
             fontSize={fontSize}
+            radiusM={radiusM}
+            onSetRadius={setRadiusM}
             onFlyTo={handleFlyTo}
             onToggleFavorite={handleToggleFavorite}
             onLocate={retryGeoloc}
@@ -142,6 +148,7 @@ export default function App() {
             favorites={favorites}
             dark={dark}
             fontSize={fontSize}
+            loading={loading}
             onToggleFavorite={handleToggleFavorite}
           />
         )}

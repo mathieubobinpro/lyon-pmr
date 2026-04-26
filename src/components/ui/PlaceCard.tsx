@@ -12,10 +12,18 @@ interface Props {
 
 const FS_SCALE: Record<FontSize, number> = { normal: 1, grand: 1.1, 'tres-grand': 1.25 };
 
+const CONFIG_LABEL: Record<string, string> = {
+  bataille: 'En bataille',
+  longitudinal: 'Longitudinal',
+  epi: 'En épi',
+  unknown: 'Voirie',
+};
+
 export function PlaceCard({ spot, onSelect, dark = false, fontSize = 'normal' }: Props) {
   const sc = FS_SCALE[fontSize];
   const dist = spot.distance ?? 0;
-  const distColor = dist < 300 ? '#00C853' : dist < 800 ? '#1A1A1A' : '#1A1A1A';
+  const distColor = dist < 150 ? '#00C853' : dist < 500 ? '#1A1A1A' : '#1A1A1A';
+  const veryClose = dist > 0 && dist < 150;
 
   return (
     <button
@@ -64,10 +72,25 @@ export function PlaceCard({ spot, onSelect, dark = false, fontSize = 'normal' }:
         }}>
           {spot.address}
         </div>
-        <div style={{ fontSize: Math.round(14 * sc), color: '#6B7280', marginTop: 3, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          <span>Voirie</span>
+        <div style={{ fontSize: Math.round(14 * sc), color: '#6B7280', marginTop: 3, display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+          <span>{CONFIG_LABEL[spot.configuration] ?? 'Voirie'}</span>
           <span>·</span>
           <span>{spot.nbPlaces} place{spot.nbPlaces > 1 ? 's' : ''}</span>
+          {veryClose && (
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: 4,
+              background: '#DCFCE7', color: '#16A34A',
+              fontSize: Math.round(11 * sc), fontWeight: 700,
+              padding: '2px 7px', borderRadius: 20,
+            }}>
+              <span style={{
+                width: 6, height: 6, borderRadius: '50%',
+                background: '#22C55E', display: 'inline-block',
+                animation: 'pulse 1.4s ease-in-out infinite',
+              }} aria-hidden />
+              Très proche
+            </span>
+          )}
         </div>
       </div>
 

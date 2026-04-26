@@ -8,18 +8,27 @@ import { formatDistance } from '../../lib/distance';
 import { searchAddress } from '../../api/ban';
 import type { GeocodingResult } from '../../types';
 
+const RADIUS_OPTIONS = [
+  { label: '500 m', value: 500 },
+  { label: '1 km',  value: 1000 },
+  { label: '2 km',  value: 2000 },
+  { label: '5 km',  value: 5000 },
+];
+
 interface Props {
   spots: ParkingSpot[];
   userCoords: Coordinates;
   favorites: Favorite[];
   dark?: boolean;
   fontSize?: FontSize;
+  radiusM?: number;
+  onSetRadius?: (r: number) => void;
   onFlyTo: (coords: Coordinates) => void;
   onToggleFavorite: (spot: ParkingSpot) => void;
   onLocate: () => void;
 }
 
-export function MapScreen({ spots, userCoords, favorites, dark = false, fontSize = 'normal', onToggleFavorite, onLocate }: Props) {
+export function MapScreen({ spots, userCoords, favorites, dark = false, fontSize = 'normal', radiusM = 2000, onSetRadius, onToggleFavorite, onLocate }: Props) {
   const [selected, setSelected] = useState<ParkingSpot | null>(null);
   const [searchVal, setSearchVal] = useState('');
   const [results, setResults] = useState<GeocodingResult[]>([]);
@@ -153,6 +162,37 @@ export function MapScreen({ spots, userCoords, favorites, dark = false, fontSize
               </div>
             )}
           </div>
+
+          {/* Sélecteur de rayon */}
+          {onSetRadius && (
+            <div style={{ padding: '0 16px 12px' }}>
+              <div role="group" aria-label="Rayon de recherche" style={{ display: 'flex', gap: 8 }}>
+                {RADIUS_OPTIONS.map(({ label, value }) => {
+                  const active = radiusM === value;
+                  return (
+                    <button
+                      key={value}
+                      onClick={() => onSetRadius(value)}
+                      aria-pressed={active}
+                      aria-label={`Rayon ${label}`}
+                      style={{
+                        flex: 1, height: 36, borderRadius: 10, border: 'none', cursor: 'pointer',
+                        background: active ? '#EEF4FF' : (dark ? '#2A2A2A' : '#F5F5F7'),
+                        color: active ? '#0066FF' : (dark ? '#AAA' : '#6B7280'),
+                        fontSize: 13, fontWeight: active ? 700 : 500,
+                        transition: 'background 0.15s, color 0.15s',
+                        WebkitTapHighlightColor: 'transparent',
+                        outline: active ? '2px solid #0066FF' : 'none',
+                        outlineOffset: -2,
+                      }}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* CTA principal — place la plus proche */}
           <div style={{ padding: '0 16px 12px' }}>
