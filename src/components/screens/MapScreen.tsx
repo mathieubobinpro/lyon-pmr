@@ -22,13 +22,14 @@ interface Props {
   dark?: boolean;
   fontSize?: FontSize;
   radiusM?: number;
+  locateTrigger?: number;
   onSetRadius?: (r: number) => void;
   onFlyTo: (coords: Coordinates) => void;
   onToggleFavorite: (spot: ParkingSpot) => void;
   onLocate: () => void;
 }
 
-export function MapScreen({ spots, userCoords, favorites, dark = false, fontSize = 'normal', radiusM = 2000, onSetRadius, onToggleFavorite, onLocate }: Props) {
+export function MapScreen({ spots, userCoords, favorites, dark = false, fontSize = 'normal', radiusM = 2000, locateTrigger = 0, onSetRadius, onToggleFavorite, onLocate }: Props) {
   const [selected, setSelected] = useState<ParkingSpot | null>(null);
   const [searchVal, setSearchVal] = useState('');
   const [results, setResults] = useState<GeocodingResult[]>([]);
@@ -57,6 +58,7 @@ export function MapScreen({ spots, userCoords, favorites, dark = false, fontSize
         userCoords={userCoords}
         selectedSpot={selected}
         onSelectSpot={setSelected}
+        locateTrigger={locateTrigger}
         dark={dark}
       />
 

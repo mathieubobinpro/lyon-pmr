@@ -10,6 +10,7 @@ interface Props {
   userCoords: Coordinates;
   selectedSpot: ParkingSpot | null;
   onSelectSpot: (spot: ParkingSpot) => void;
+  locateTrigger?: number;
   dark?: boolean;
 }
 
@@ -25,7 +26,7 @@ function radiusForZoom(zoom: number): number {
   return 10000;
 }
 
-export function MapView({ spots, userCoords, selectedSpot, onSelectSpot, dark = false }: Props) {
+export function MapView({ spots, userCoords, selectedSpot, onSelectSpot, locateTrigger = 0, dark = false }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef       = useRef<maplibregl.Map | null>(null);
   const markersRef   = useRef<Map<string, maplibregl.Marker>>(new Map());
@@ -153,6 +154,20 @@ export function MapView({ spots, userCoords, selectedSpot, onSelectSpot, dark = 
     map.on('zoom', updateMarkers);
     return () => { map.off('zoom', updateMarkers); };
   }, [updateMarkers]);
+
+  // Fly to user position when locate button is pressed (locateTrigger increments)
+  const isFirstLocate = useRef(true);
+  useEffect(() => {
+    if (isFirstLocate.current) { isFirstLocate.current = false; return; }
+    const map = mapRef.current;
+    if (!map) return;
+    map.flyTo({
+      center: [userCoords.lng, userCoords.lat],
+      zoom: 15,
+      duration: 800,
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [locateTrigger]);
 
   // Fly to selected spot
   useEffect(() => {

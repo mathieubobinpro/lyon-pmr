@@ -36,6 +36,7 @@ export default function App() {
   const [dark, setDark]             = useState(() => storage.getDarkMode());
   const [fontSize, setFontSize]     = useState<FontSize>(() => storage.getFontSize());
   const [radiusM, setRadiusM]       = useState(2000);
+  const [locateTrigger, setLocateTrigger] = useState(0);
 
   const isOnline = useOnlineStatus();
   const { coords: userCoords, retry: retryGeoloc } = useGeolocation();
@@ -102,6 +103,11 @@ export default function App() {
     // transmis au MapScreen pour centrer la carte
   }, []);
 
+  const handleLocate = useCallback(() => {
+    retryGeoloc();
+    setLocateTrigger((n) => n + 1);
+  }, [retryGeoloc]);
+
   return (
     <div
       style={{
@@ -135,10 +141,11 @@ export default function App() {
             dark={dark}
             fontSize={fontSize}
             radiusM={radiusM}
+            locateTrigger={locateTrigger}
             onSetRadius={setRadiusM}
             onFlyTo={handleFlyTo}
             onToggleFavorite={handleToggleFavorite}
-            onLocate={retryGeoloc}
+            onLocate={handleLocate}
           />
           </Suspense>
         )}
