@@ -37,10 +37,10 @@ test('parcours core : ouverture → place la plus proche → détail → navigat
 
 // ── Navigation entre onglets ───────────────────────────────────────────────────
 
-test('navigation entre les 4 onglets', async ({ page }) => {
+test('navigation entre les 3 onglets', async ({ page }) => {
   await waitForApp(page);
 
-  for (const tab of ['Liste', 'Favoris', 'Réglages', 'Carte']) {
+  for (const tab of ['Liste', 'Réglages', 'Carte']) {
     await page.locator('nav button', { hasText: tab }).tap();
     await expect(page.locator('nav button[aria-current="page"]')).toContainText(tab);
   }

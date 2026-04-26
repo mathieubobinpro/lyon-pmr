@@ -22,6 +22,15 @@ export interface ParkingSpot {
   distance?: number;
 }
 
+// Conservé pour la compatibilité de storage.ts / useFavorites.ts (non exposé dans l'UI)
+export interface Favorite {
+  id: string;
+  label: string;
+  spotId: string;
+  emoji: string;
+  createdAt: number;
+}
+
 export interface GeocodingResult {
   label: string;
   name: string;
