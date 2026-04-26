@@ -11,6 +11,7 @@ export function PMRSymbol({ size = 24, color = '#0066FF' }: Props) {
       width={size}
       height={size}
       viewBox="0 0 24 24"
+      fill={color}
       aria-hidden="true"
       focusable="false"
     >
