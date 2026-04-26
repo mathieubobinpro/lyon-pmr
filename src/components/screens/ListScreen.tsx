@@ -1,15 +1,13 @@
 import { useState } from 'react';
-import type { ParkingSpot, Favorite, FontSize } from '../../types';
+import type { ParkingSpot, FontSize } from '../../types';
 import { PlaceCard } from '../ui/PlaceCard';
 import { DetailSheet } from '../ui/DetailSheet';
 
 interface Props {
   spots: ParkingSpot[];
-  favorites: Favorite[];
   dark?: boolean;
   fontSize?: FontSize;
   loading?: boolean;
-  onToggleFavorite: (spot: ParkingSpot) => void;
 }
 
 // Skeleton card — même hauteur qu'une PlaceCard (~86px) pour éviter le CLS
@@ -36,9 +34,8 @@ function SkeletonCard({ dark }: { dark: boolean }) {
   );
 }
 
-export function ListScreen({ spots, favorites, dark = false, fontSize = 'normal', loading = false, onToggleFavorite }: Props) {
+export function ListScreen({ spots, dark = false, fontSize = 'normal', loading = false }: Props) {
   const [selected, setSelected] = useState<ParkingSpot | null>(null);
-  const isFavorite = (spot: ParkingSpot) => favorites.some((f) => f.spotId === spot.id);
 
   if (selected) {
     return (
@@ -47,11 +44,9 @@ export function ListScreen({ spots, favorites, dark = false, fontSize = 'normal'
           <div style={{ flex: 1 }} />
           <DetailSheet
             spot={selected}
-            isFavorite={isFavorite(selected)}
             dark={dark}
             fontSize={fontSize}
             onClose={() => setSelected(null)}
-            onToggleFavorite={onToggleFavorite}
           />
         </div>
       </div>

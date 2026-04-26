@@ -37,10 +37,10 @@ test('parcours core : ouverture → place la plus proche → détail → navigat
 
 // ── Navigation entre onglets ───────────────────────────────────────────────────
 
-test('navigation entre les 4 onglets', async ({ page }) => {
+test('navigation entre les 3 onglets', async ({ page }) => {
   await waitForApp(page);
 
-  for (const tab of ['Liste', 'Favoris', 'Réglages', 'Carte']) {
+  for (const tab of ['Liste', 'Réglages', 'Carte']) {
     await page.locator('nav button', { hasText: tab }).tap();
     await expect(page.locator('nav button[aria-current="page"]')).toContainText(tab);
   }
@@ -104,7 +104,7 @@ test('cibles tactiles — tab bar buttons ≥ 56 px', async ({ page }) => {
 
   const tabButtons = page.locator('nav button');
   const count = await tabButtons.count();
-  expect(count).toBeGreaterThanOrEqual(4);
+  expect(count).toBeGreaterThanOrEqual(3);
 
   for (let i = 0; i < count; i++) {
     const box = await tabButtons.nth(i).boundingBox();
@@ -133,10 +133,4 @@ test('dark mode — toggle depuis Réglages persiste sur Carte', async ({ page }
   expect(hasDark).toBe(true);
 });
 
-// ── État vide Favoris ──────────────────────────────────────────────────────────
-
-test('favoris vides — empty state lisible', async ({ page }) => {
-  await waitForApp(page);
-  await page.locator('nav button', { hasText: 'Favoris' }).tap();
-  await expect(page.locator('h2', { hasText: 'Aucun favori' })).toBeVisible();
-});
+// (test "favoris vides" supprimé — feature Favoris retirée)

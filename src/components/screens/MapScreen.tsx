@@ -1,26 +1,23 @@
 import { useState, useEffect, useRef } from 'react';
 import { Crosshair, Search, X } from 'lucide-react';
-import type { ParkingSpot, Coordinates, FontSize, Favorite } from '../../types';
+import type { ParkingSpot, Coordinates, FontSize } from '../../types';
 import { MapView } from '../map/MapView';
 import { DetailSheet } from '../ui/DetailSheet';
 import { PMRSymbol } from '../ui/PMRSymbol';
-import { formatDistance } from '../../lib/distance';
 import { searchAddress } from '../../api/ban';
 import type { GeocodingResult } from '../../types';
 
 interface Props {
   spots: ParkingSpot[];
   userCoords: Coordinates;
-  favorites: Favorite[];
   dark?: boolean;
   fontSize?: FontSize;
   locateTrigger?: number;
   onFlyTo: (coords: Coordinates) => void;
-  onToggleFavorite: (spot: ParkingSpot) => void;
   onLocate: () => void;
 }
 
-export function MapScreen({ spots, userCoords, favorites, dark = false, fontSize = 'normal', locateTrigger = 0, onToggleFavorite, onLocate }: Props) {
+export function MapScreen({ spots, userCoords, dark = false, fontSize = 'normal', locateTrigger = 0, onLocate }: Props) {
   const [selected, setSelected] = useState<ParkingSpot | null>(null);
   const [searchVal, setSearchVal] = useState('');
   const [results, setResults] = useState<GeocodingResult[]>([]);
@@ -39,7 +36,6 @@ export function MapScreen({ spots, userCoords, favorites, dark = false, fontSize
   }, [searchVal]);
 
   const nearest = spots[0] ?? null;
-  const isFavorite = (spot: ParkingSpot) => favorites.some((f) => f.spotId === spot.id);
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
@@ -179,39 +175,6 @@ export function MapScreen({ spots, userCoords, favorites, dark = false, fontSize
             </button>
           </div>
 
-          {/* Favoris rapides */}
-          {favorites.length > 0 && (
-            <div style={{ padding: '0 16px 12px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                {favorites.slice(0, 2).map((fav) => {
-                  const spot = spots.find((s) => s.id === fav.spotId) ?? spots[0];
-                  if (!spot) return null;
-                  return (
-                    <button
-                      key={fav.id}
-                      onClick={() => setSelected(spot)}
-                      aria-label={`Aller à ${fav.label}`}
-                      style={{
-                        padding: '12px 14px', borderRadius: 14,
-                        border: `1.5px solid ${dark ? '#333' : '#E5E7EB'}`,
-                        background: dark ? '#2A2A2A' : '#FFFFFF',
-                        cursor: 'pointer', textAlign: 'left',
-                        display: 'flex', alignItems: 'center', gap: 10,
-                        minHeight: 56,
-                        WebkitTapHighlightColor: 'transparent',
-                      }}
-                    >
-                      <span style={{ fontSize: 22 }} aria-hidden>{fav.emoji}</span>
-                      <div>
-                        <div style={{ fontSize: 14, fontWeight: 600, color: dark ? '#F0F0F0' : '#1A1A1A' }}>{fav.label}</div>
-                        <div style={{ fontSize: 12, color: '#6B7280' }}>{formatDistance(spot.distance ?? 0)}</div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
         </div>
       )}
 
@@ -220,11 +183,9 @@ export function MapScreen({ spots, userCoords, favorites, dark = false, fontSize
         <div style={{ position: 'absolute', inset: 0, zIndex: 99 }}>
           <DetailSheet
             spot={selected}
-            isFavorite={isFavorite(selected)}
             dark={dark}
             fontSize={fontSize}
             onClose={() => setSelected(null)}
-            onToggleFavorite={onToggleFavorite}
           />
         </div>
       )}

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Star, ExternalLink, Navigation } from 'lucide-react';
+import { X, ExternalLink, Navigation } from 'lucide-react';
 import type { ParkingSpot, FontSize } from '../../types';
 import { formatDistance, formatWalkTime } from '../../lib/distance';
 import { buildNavUrl, NAV_APPS } from '../../lib/routing';
@@ -8,16 +8,14 @@ import { BottomSheet } from './BottomSheet';
 
 interface Props {
   spot: ParkingSpot;
-  isFavorite: boolean;
   dark?: boolean;
   fontSize?: FontSize;
   onClose: () => void;
-  onToggleFavorite: (spot: ParkingSpot) => void;
 }
 
 const FS_SCALE: Record<FontSize, number> = { normal: 1, grand: 1.1, 'tres-grand': 1.25 };
 
-export function DetailSheet({ spot, isFavorite, dark = false, fontSize = 'normal', onClose, onToggleFavorite }: Props) {
+export function DetailSheet({ spot, dark = false, fontSize = 'normal', onClose }: Props) {
   const [navOpen, setNavOpen] = useState(false);
   const sc = FS_SCALE[fontSize];
   const dist = spot.distance ?? 0;
@@ -84,37 +82,21 @@ export function DetailSheet({ spot, isFavorite, dark = false, fontSize = 'normal
           <span>J'y vais !</span>
         </button>
 
-        {/* Actions secondaires */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
-          <button
-            onClick={() => onToggleFavorite(spot)}
-            aria-label={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
-            aria-pressed={isFavorite}
-            style={{
-              height: 56, borderRadius: 14,
-              border: `1.5px solid ${dark ? '#333' : '#E5E7EB'}`,
-              background: dark ? '#2A2A2A' : '#FFFFFF', cursor: 'pointer',
-              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4,
-              color: isFavorite ? '#0066FF' : (dark ? '#CCC' : '#1A1A1A'),
-            }}
-          >
-            <Star size={20} fill={isFavorite ? '#0066FF' : 'none'} color={isFavorite ? '#0066FF' : '#6B7280'} aria-hidden />
-            <span style={{ fontSize: 12, fontWeight: 600 }}>{isFavorite ? 'Retiré' : 'Favori'}</span>
-          </button>
-
+        {/* Fermer */}
+        <div style={{ marginBottom: 16 }}>
           <button
             onClick={onClose}
-            aria-label="Fermer"
+            aria-label="Fermer le détail"
             style={{
-              height: 56, borderRadius: 14,
+              width: '100%', height: 56, borderRadius: 14,
               border: `1.5px solid ${dark ? '#333' : '#E5E7EB'}`,
               background: dark ? '#2A2A2A' : '#FFFFFF', cursor: 'pointer',
-              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4,
-              color: dark ? '#CCC' : '#1A1A1A',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              color: dark ? '#CCC' : '#6B7280', fontSize: 16, fontWeight: 600,
             }}
           >
-            <X size={20} color="#6B7280" aria-hidden />
-            <span style={{ fontSize: 12, fontWeight: 600 }}>Fermer</span>
+            <X size={18} color="#6B7280" aria-hidden />
+            Fermer
           </button>
         </div>
       </div>
