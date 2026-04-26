@@ -22,14 +22,6 @@ export interface ParkingSpot {
   distance?: number;
 }
 
-export interface Favorite {
-  id: string;
-  label: string;
-  spotId: string;
-  emoji: string;
-  createdAt: number;
-}
-
 export interface GeocodingResult {
   label: string;
   name: string;
@@ -39,4 +31,4 @@ export interface GeocodingResult {
 
 export type FontSize = 'normal' | 'grand' | 'tres-grand';
 
-export type ActiveTab = 'map' | 'list' | 'favorites' | 'settings';
+export type ActiveTab = 'map' | 'list' | 'settings';

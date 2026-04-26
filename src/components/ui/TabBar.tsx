@@ -1,4 +1,4 @@
-import { Map, List, Star, Settings } from 'lucide-react';
+import { Map, List, Settings } from 'lucide-react';
 import type { ActiveTab, FontSize } from '../../types';
 
 interface Props {
@@ -9,10 +9,9 @@ interface Props {
 }
 
 const TABS: { id: ActiveTab; label: string; Icon: typeof Map }[] = [
-  { id: 'map',       label: 'Carte',    Icon: Map },
-  { id: 'list',      label: 'Liste',    Icon: List },
-  { id: 'favorites', label: 'Favoris',  Icon: Star },
-  { id: 'settings',  label: 'Réglages', Icon: Settings },
+  { id: 'map',      label: 'Carte',    Icon: Map },
+  { id: 'list',     label: 'Liste',    Icon: List },
+  { id: 'settings', label: 'Réglages', Icon: Settings },
 ];
 
 export function TabBar({ active, onChange, dark = false, fontSize = 'normal' }: Props) {
@@ -57,7 +56,7 @@ export function TabBar({ active, onChange, dark = false, fontSize = 'normal' }: 
               size={24}
               strokeWidth={isActive ? 2.5 : 1.8}
               aria-hidden
-              fill={id === 'favorites' && isActive ? '#0066FF' : 'none'}
+              fill="none"
             />
             <span style={{ fontSize: labelSize, fontWeight: isActive ? 700 : 500, letterSpacing: 0.1 }}>
               {label}
