@@ -10,12 +10,10 @@ interface Props {
   dark?: boolean;
   fontSize?: FontSize;
   onRemoveFavorite: (favId: string) => void;
-  onToggleFavorite: (spot: ParkingSpot) => void;
 }
 
-export function FavoritesScreen({ spots, favorites, dark = false, fontSize = 'normal', onRemoveFavorite, onToggleFavorite }: Props) {
+export function FavoritesScreen({ spots, favorites, dark = false, fontSize = 'normal', onRemoveFavorite }: Props) {
   const [selected, setSelected] = useState<ParkingSpot | null>(null);
-  const isFavorite = (spot: ParkingSpot) => favorites.some((f) => f.spotId === spot.id);
 
   if (selected) {
     return (
@@ -24,11 +22,9 @@ export function FavoritesScreen({ spots, favorites, dark = false, fontSize = 'no
           <div style={{ flex: 1 }} />
           <DetailSheet
             spot={selected}
-            isFavorite={isFavorite(selected)}
             dark={dark}
             fontSize={fontSize}
             onClose={() => setSelected(null)}
-            onToggleFavorite={onToggleFavorite}
           />
         </div>
       </div>
