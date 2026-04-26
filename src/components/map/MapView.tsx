@@ -155,19 +155,29 @@ export function MapView({ spots, userCoords, selectedSpot, onSelectSpot, locateT
     return () => { map.off('zoom', updateMarkers); };
   }, [updateMarkers]);
 
-  // Fly to user position when locate button is pressed (locateTrigger increments)
+  // Fly to user position when locate button is pressed
+  // pendingLocate reste true jusqu'à ce que les nouvelles coords GPS arrivent
   const isFirstLocate = useRef(true);
+  const pendingLocate  = useRef(false);
+
   useEffect(() => {
     if (isFirstLocate.current) { isFirstLocate.current = false; return; }
+    pendingLocate.current = true;
     const map = mapRef.current;
     if (!map) return;
-    map.flyTo({
-      center: [userCoords.lng, userCoords.lat],
-      zoom: 15,
-      duration: 800,
-    });
+    // Fly immédiat sur la dernière position connue
+    map.flyTo({ center: [userCoords.lng, userCoords.lat], zoom: 15, duration: 600 });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [locateTrigger]);
+
+  // Re-fly quand les coordonnées GPS se mettent à jour après un locate
+  useEffect(() => {
+    if (!pendingLocate.current) return;
+    pendingLocate.current = false;
+    const map = mapRef.current;
+    if (!map) return;
+    map.flyTo({ center: [userCoords.lng, userCoords.lat], zoom: 15, duration: 600 });
+  }, [userCoords]);
 
   // Fly to selected spot
   useEffect(() => {

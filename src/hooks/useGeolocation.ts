@@ -9,7 +9,10 @@ type GeolocationState =
   | { status: 'error'; message: string };
 
 export function useGeolocation() {
-  const [state, setState] = useState<GeolocationState>({ status: 'idle' });
+  const [state, setState]           = useState<GeolocationState>({ status: 'idle' });
+  // Dernières coords GPS valides — conservées pendant le rechargement pour éviter
+  // que flyTo parte vers LYON_CENTER quand retryGeoloc() est appelé
+  const [lastCoords, setLastCoords] = useState<Coordinates | null>(null);
 
   const request = useCallback(() => {
     if (!navigator.geolocation) {
@@ -18,7 +21,11 @@ export function useGeolocation() {
     }
     setState({ status: 'loading' });
     navigator.geolocation.getCurrentPosition(
-      (pos) => setState({ status: 'success', coords: { lat: pos.coords.latitude, lng: pos.coords.longitude } }),
+      (pos) => {
+        const coords: Coordinates = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setLastCoords(coords);
+        setState({ status: 'success', coords });
+      },
       (err) => {
         const msg =
           err.code === GeolocationPositionError.PERMISSION_DENIED
@@ -33,8 +40,9 @@ export function useGeolocation() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { request(); }, []);
 
+  // Pendant le loading, on garde les dernières coords connues (pas LYON_CENTER)
   const coords: Coordinates =
-    state.status === 'success' ? state.coords : LYON_CENTER;
+    state.status === 'success' ? state.coords : (lastCoords ?? LYON_CENTER);
 
   return { state, coords, retry: request };
 }
