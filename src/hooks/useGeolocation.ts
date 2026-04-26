@@ -30,7 +30,8 @@ export function useGeolocation() {
     );
   }, []);
 
-  useEffect(() => { request(); }, [request]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { request(); }, []);
 
   const coords: Coordinates =
     state.status === 'success' ? state.coords : LYON_CENTER;

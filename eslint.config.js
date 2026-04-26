@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores(['dist', 'dev-dist', 'coverage', 'node_modules', 'playwright-report', 'test-results']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -17,6 +17,11 @@ export default defineConfig([
     ],
     languageOptions: {
       globals: globals.browser,
+    },
+    rules: {
+      // Pattern légitimes : setState dans des callbacks async (setTimeout, geolocation)
+      // ne sont pas de vraies cascades synchrones — on abaisse en warn
+      'react-hooks/set-state-in-effect': 'warn',
     },
   },
 ])

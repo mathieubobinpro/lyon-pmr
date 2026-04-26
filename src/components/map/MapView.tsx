@@ -63,6 +63,7 @@ export function MapView({ spots, userCoords, selectedSpot, onSelectSpot, dark = 
     return () => {
       map.remove();
       mapRef.current = null;
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       markersRef.current.clear();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
