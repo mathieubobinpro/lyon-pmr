@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Crosshair, Search, X, ChevronLeft } from 'lucide-react';
 import type { ParkingSpot, Coordinates, FontSize } from '../../types';
 import { MapView } from '../map/MapView';
@@ -13,15 +13,16 @@ interface Props {
   dark?: boolean;
   fontSize?: FontSize;
   locateTrigger?: number;
-  onFlyTo: (coords: Coordinates) => void;
   onLocate: () => void;
 }
 
 export function MapScreen({ spots, userCoords, dark = false, fontSize = 'normal', locateTrigger = 0, onLocate }: Props) {
-  const [selected, setSelected]     = useState<ParkingSpot | null>(null);
-  const [searchMode, setSearchMode] = useState(false);
-  const [searchVal, setSearchVal]   = useState('');
-  const [results, setResults]       = useState<GeocodingResult[]>([]);
+  const [selected, setSelected]       = useState<ParkingSpot | null>(null);
+  const [searchMode, setSearchMode]   = useState(false);
+  const [searchVal, setSearchVal]     = useState('');
+  const [results, setResults]         = useState<GeocodingResult[]>([]);
+  const [flyToTarget, setFlyToTarget] = useState<Coordinates | null>(null);
+  const [flyToTrigger, setFlyToTrigger] = useState(0);
   const abortRef = useRef<AbortController | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -30,17 +31,17 @@ export function MapScreen({ spots, userCoords, dark = false, fontSize = 'normal'
     if (searchMode) setTimeout(() => inputRef.current?.focus(), 80);
   }, [searchMode]);
 
-  // Recherche d'adresse avec debounce 400ms
+  // Recherche d'adresse avec debounce 400ms — biaisée vers la position utilisateur
   useEffect(() => {
     if (searchVal.length < 3) { setResults([]); return; }
     const t = setTimeout(async () => {
       abortRef.current?.abort();
       abortRef.current = new AbortController();
-      const res = await searchAddress(searchVal, abortRef.current.signal);
+      const res = await searchAddress(searchVal, abortRef.current.signal, userCoords);
       setResults(res);
     }, 400);
     return () => clearTimeout(t);
-  }, [searchVal]);
+  }, [searchVal, userCoords]);
 
   const nearest = spots[0] ?? null;
 
@@ -49,6 +50,14 @@ export function MapScreen({ spots, userCoords, dark = false, fontSize = 'normal'
     setSearchVal('');
     setResults([]);
   };
+
+  const selectResult = useCallback((r: GeocodingResult) => {
+    setSearchVal(r.label);
+    setResults([]);
+    setFlyToTarget(r.coordinates);
+    setFlyToTrigger((n) => n + 1);
+    setSearchMode(false);
+  }, []);
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
@@ -60,6 +69,8 @@ export function MapScreen({ spots, userCoords, dark = false, fontSize = 'normal'
         onSelectSpot={setSelected}
         locateTrigger={locateTrigger}
         dark={dark}
+        flyToTarget={flyToTarget}
+        flyToTrigger={flyToTrigger}
       />
 
       {/* Compteur haut */}
@@ -152,7 +163,7 @@ export function MapScreen({ spots, userCoords, dark = false, fontSize = 'normal'
                   {results.map((r, i) => (
                     <button
                       key={i}
-                      onClick={() => { setSearchVal(r.label); setResults([]); }}
+                      onClick={() => selectResult(r)}
                       style={{
                         width: '100%', padding: '12px 16px', border: 'none',
                         background: 'transparent', textAlign: 'left', cursor: 'pointer',

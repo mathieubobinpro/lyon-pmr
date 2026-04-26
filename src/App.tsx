@@ -77,8 +77,6 @@ export default function App() {
     storage.setFontSize(v);
   }, []);
 
-  const handleFlyTo = useCallback((/* coords: Coordinates */) => {}, []);
-
   const handleLocate = useCallback(() => {
     retryGeoloc();
     setLocateTrigger((n) => n + 1);
@@ -93,7 +91,7 @@ export default function App() {
       <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
         {tab === 'map' && (
           <Suspense fallback={<div style={{ flex: 1, background: dark ? '#0F0F12' : '#F5F5F7' }} aria-busy="true" aria-label="Chargement de la carte" />}>
-            <MapScreen spots={nearbySpots} userCoords={userCoords} dark={dark} fontSize={fontSize} locateTrigger={locateTrigger} onFlyTo={handleFlyTo} onLocate={handleLocate} />
+            <MapScreen spots={nearbySpots} userCoords={userCoords} dark={dark} fontSize={fontSize} locateTrigger={locateTrigger} onLocate={handleLocate} />
           </Suspense>
         )}
         {tab === 'list' && <ListScreen spots={nearbySpots} dark={dark} fontSize={fontSize} loading={loading} />}

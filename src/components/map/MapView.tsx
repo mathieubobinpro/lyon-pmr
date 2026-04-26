@@ -12,6 +12,8 @@ interface Props {
   onSelectSpot: (spot: ParkingSpot) => void;
   locateTrigger?: number;
   dark?: boolean;
+  flyToTarget?: Coordinates | null;
+  flyToTrigger?: number;
 }
 
 const TILE_URL = 'https://{a-d}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
@@ -26,7 +28,7 @@ function radiusForZoom(zoom: number): number {
   return 10000;
 }
 
-export function MapView({ spots, userCoords, selectedSpot, onSelectSpot, locateTrigger = 0, dark = false }: Props) {
+export function MapView({ spots, userCoords, selectedSpot, onSelectSpot, locateTrigger = 0, dark = false, flyToTarget, flyToTrigger = 0 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef       = useRef<maplibregl.Map | null>(null);
   const markersRef   = useRef<Map<string, maplibregl.Marker>>(new Map());
@@ -190,6 +192,16 @@ export function MapView({ spots, userCoords, selectedSpot, onSelectSpot, locateT
       });
     }
   }, [selectedSpot]);
+
+  // Fly to geocoded address chosen in search
+  useEffect(() => {
+    if (!flyToTarget) return;
+    const map = mapRef.current;
+    if (!map) return;
+    map.flyTo({ center: [flyToTarget.lng, flyToTarget.lat], zoom: 16, duration: 800 });
+  // flyToTrigger changes each time the user picks a result (even same address twice)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [flyToTrigger]);
 
   return (
     <div
