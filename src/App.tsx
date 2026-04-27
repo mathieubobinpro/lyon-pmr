@@ -12,11 +12,13 @@ import { fetchParkingSpots } from './api/grandlyon';
 import { cacheSpots, getCachedSpots } from './lib/offlineCache';
 import { storage } from './lib/storage';
 import { useGeolocation } from './hooks/useGeolocation';
+import { useGeolocationPermission } from './hooks/useGeolocationPermission';
 import { useNearestSpots } from './hooks/useNearestSpots';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
 
 import { TabBar } from './components/ui/TabBar';
 import { SplashScreen } from './components/ui/SplashScreen';
+import { GeolocationPrompt } from './components/ui/GeolocationPrompt';
 const MapScreen = lazy(() => import('./components/screens/MapScreen').then((m) => ({ default: m.MapScreen })));
 import { ListScreen } from './components/screens/ListScreen';
 import { SettingsScreen } from './components/screens/SettingsScreen';
@@ -35,7 +37,12 @@ export default function App() {
   const [locateTrigger, setLocateTrigger] = useState(0);
 
   const isOnline = useOnlineStatus();
-  const { coords: userCoords, retry: retryGeoloc } = useGeolocation();
+  const { state: geoState, coords: userCoords, retry: retryGeoloc } = useGeolocation();
+
+  // Message d'erreur exposé pour le fallback sans API Permissions (vieux Safari)
+  const geoErrorMsg = geoState.status === 'error' ? geoState.message : null;
+  const { showPrompt: showGeoPrompt, dismiss: dismissGeoPrompt } = useGeolocationPermission(geoErrorMsg);
+
   const nearbySpots = useNearestSpots(allSpots, userCoords, 2000);
 
   const { needRefresh, updateServiceWorker } = useRegisterSW({
@@ -85,6 +92,7 @@ export default function App() {
 
   return (
     <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', position: 'relative', fontFamily: 'Inter, system-ui, sans-serif', colorScheme: dark ? 'dark' : 'light', background: dark ? '#0F0F12' : '#F5F5F7' }}>
+      {showGeoPrompt && <GeolocationPrompt dark={dark} onDismiss={dismissGeoPrompt} />}
       {splash && <SplashScreen onDone={() => setSplash(false)} />}
       {!isOnline && <OfflineBanner savedAt={offlineSavedAt} dark={dark} />}
       {needRefresh[0] && <UpdateToast onUpdate={() => updateServiceWorker(true)} dark={dark} />}
