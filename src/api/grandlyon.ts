@@ -2,7 +2,7 @@ import type { ParkingSpot, ParkingConfiguration } from '../types';
 
 const WFS_URL  = 'https://data.grandlyon.com/geoserver/wfs';
 const TYPENAME = 'metropole-de-lyon:com_donnees_communales.comstationnementpmr_1_0_0';
-const TIMEOUT_MS = 5000;
+const TIMEOUT_MS = 20_000; // full dataset peut peser plusieurs secondes
 
 export const LYON_CENTER = { lat: 45.7640, lng: 4.8357 };
 

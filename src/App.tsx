@@ -8,7 +8,7 @@ import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 
 import type { ParkingSpot, ActiveTab, FontSize } from './types';
-import { fetchParkingSpots, MOCK_SPOTS } from './api/grandlyon';
+import { fetchParkingSpots } from './api/grandlyon';
 import { cacheSpots, getCachedSpots } from './lib/offlineCache';
 import { storage } from './lib/storage';
 import { useGeolocation } from './hooks/useGeolocation';
@@ -26,7 +26,7 @@ import { UpdateToast } from './components/pwa/UpdateToast';
 export default function App() {
   const [splash, setSplash]         = useState(true);
   const [tab, setTab]               = useState<ActiveTab>('map');
-  const [allSpots, setAllSpots]     = useState<ParkingSpot[]>(MOCK_SPOTS);
+  const [allSpots, setAllSpots]     = useState<ParkingSpot[]>([]);
   const [loading, setLoading]       = useState(true);
   const [offlineSavedAt, setOfflineSavedAt] = useState<number | null>(null);
   const [dataUpdatedAt, setDataUpdatedAt]   = useState<number | null>(null);
@@ -45,20 +45,21 @@ export default function App() {
 
   useEffect(() => {
     (async () => {
-      const { spots: cached, savedAt, isStale } = await getCachedSpots();
-      if (cached.length > 0) {
-        setAllSpots(cached);
-        setOfflineSavedAt(savedAt);
-        setDataUpdatedAt(savedAt);
-        setLoading(false);
-      }
-      if (isOnline && (isStale || cached.length === 0)) {
+      if (navigator.onLine) {
+        // Toujours charger le jeu complet depuis l'API Grand Lyon
         const fresh = await fetchParkingSpots();
-        const now = Date.now();
         setAllSpots(fresh);
         await cacheSpots(fresh);
         setOfflineSavedAt(null);
-        setDataUpdatedAt(now);
+        setDataUpdatedAt(Date.now());
+      } else {
+        // Hors-ligne : fallback sur le cache local
+        const { spots: cached, savedAt } = await getCachedSpots();
+        if (cached.length > 0) {
+          setAllSpots(cached);
+          setOfflineSavedAt(savedAt);
+          setDataUpdatedAt(savedAt);
+        }
       }
       setLoading(false);
     })();
@@ -77,8 +78,6 @@ export default function App() {
     storage.setFontSize(v);
   }, []);
 
-  const handleFlyTo = useCallback((/* coords: Coordinates */) => {}, []);
-
   const handleLocate = useCallback(() => {
     retryGeoloc();
     setLocateTrigger((n) => n + 1);
@@ -93,7 +92,16 @@ export default function App() {
       <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
         {tab === 'map' && (
           <Suspense fallback={<div style={{ flex: 1, background: dark ? '#0F0F12' : '#F5F5F7' }} aria-busy="true" aria-label="Chargement de la carte" />}>
-            <MapScreen spots={nearbySpots} userCoords={userCoords} dark={dark} fontSize={fontSize} locateTrigger={locateTrigger} onFlyTo={handleFlyTo} onLocate={handleLocate} />
+            <MapScreen
+                mapSpots={allSpots}
+                nearestSpot={nearbySpots[0] ?? null}
+                userCoords={userCoords}
+                dark={dark}
+                fontSize={fontSize}
+                loading={loading}
+                locateTrigger={locateTrigger}
+                onLocate={handleLocate}
+              />
           </Suspense>
         )}
         {tab === 'list' && <ListScreen spots={nearbySpots} dark={dark} fontSize={fontSize} loading={loading} />}
