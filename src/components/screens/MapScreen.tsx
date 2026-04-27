@@ -20,6 +20,8 @@ interface Props {
   /** true si la permission géoloc est explicitement refusée */
   locationDenied?: boolean;
   onLocate: () => void;
+  /** Ré-ouvre la popin de demande de géolocalisation */
+  onShowGeoPrompt?: () => void;
 }
 
 export function MapScreen({
@@ -32,6 +34,7 @@ export function MapScreen({
   locateTrigger = 0,
   locationDenied = false,
   onLocate,
+  onShowGeoPrompt,
 }: Props) {
   const [selected, setSelected]     = useState<ParkingSpot | null>(null);
   const [searchMode, setSearchMode] = useState(false);
@@ -134,9 +137,9 @@ export function MapScreen({
         transition: 'bottom 0.3s',
       }}>
         <button
-          onClick={onLocate}
+          onClick={locationDenied ? onShowGeoPrompt : onLocate}
           aria-label={locationDenied
-            ? "Localisation désactivée — tap pour réessayer"
+            ? "Localisation désactivée — tap pour activer"
             : "Me localiser sur la carte"}
           style={{
             width: 56, height: 56, borderRadius: '50%', border: 'none', cursor: 'pointer',

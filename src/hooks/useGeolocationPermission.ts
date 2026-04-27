@@ -69,5 +69,8 @@ export function useGeolocationPermission(geoErrorMessage: string | null) {
     setShowPrompt(false);
   };
 
-  return { showPrompt, dismiss, isLocationDenied };
+  /** Ré-ouvre la popin manuellement (ex : tap sur le badge géoloc désactivée). */
+  const show = () => setShowPrompt(true);
+
+  return { showPrompt, show, dismiss, isLocationDenied };
 }
