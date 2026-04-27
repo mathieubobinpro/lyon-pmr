@@ -8,16 +8,28 @@ import { searchAddress } from '../../api/ban';
 import type { GeocodingResult } from '../../types';
 
 interface Props {
-  spots: ParkingSpot[];
+  /** Tous les spots PMR — affichés sur la carte avec clustering */
+  mapSpots: ParkingSpot[];
+  /** Le spot le plus proche de l'utilisateur — pour le CTA "Place la plus proche" */
+  nearestSpot: ParkingSpot | null;
   userCoords: Coordinates;
   dark?: boolean;
   fontSize?: FontSize;
+  loading?: boolean;
   locateTrigger?: number;
-  onFlyTo: (coords: Coordinates) => void;
   onLocate: () => void;
 }
 
-export function MapScreen({ spots, userCoords, dark = false, fontSize = 'normal', locateTrigger = 0, onLocate }: Props) {
+export function MapScreen({
+  mapSpots,
+  nearestSpot,
+  userCoords,
+  dark = false,
+  fontSize = 'normal',
+  loading = false,
+  locateTrigger = 0,
+  onLocate,
+}: Props) {
   const [selected, setSelected]     = useState<ParkingSpot | null>(null);
   const [searchMode, setSearchMode] = useState(false);
   const [searchVal, setSearchVal]   = useState('');
@@ -42,8 +54,6 @@ export function MapScreen({ spots, userCoords, dark = false, fontSize = 'normal'
     return () => clearTimeout(t);
   }, [searchVal]);
 
-  const nearest = spots[0] ?? null;
-
   const closeSearch = () => {
     setSearchMode(false);
     setSearchVal('');
@@ -54,7 +64,7 @@ export function MapScreen({ spots, userCoords, dark = false, fontSize = 'normal'
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       {/* Carte */}
       <MapView
-        spots={spots}
+        spots={mapSpots}
         userCoords={userCoords}
         selectedSpot={selected}
         onSelectSpot={setSelected}
@@ -62,21 +72,55 @@ export function MapScreen({ spots, userCoords, dark = false, fontSize = 'normal'
         dark={dark}
       />
 
+      {/* Overlay de chargement — masqué dès que les données sont prêtes */}
+      {loading && (
+        <div
+          aria-live="polite"
+          aria-busy="true"
+          aria-label="Chargement des places PMR en cours"
+          style={{
+            position: 'absolute', inset: 0, zIndex: 200,
+            background: dark ? 'rgba(0,0,0,0.55)' : 'rgba(255,255,255,0.7)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center', gap: 14,
+          }}
+        >
+          {/* Spinner */}
+          <div style={{
+            width: 44, height: 44, borderRadius: '50%',
+            border: `4px solid ${dark ? '#334' : '#E0E7FF'}`,
+            borderTopColor: '#2563EB',
+            animation: 'spin 0.8s linear infinite',
+          }} />
+          <p style={{
+            fontSize: 15, fontWeight: 600,
+            color: dark ? '#E0E7FF' : '#1E40AF',
+            margin: 0,
+          }}>
+            Chargement des places PMR…
+          </p>
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        </div>
+      )}
+
       {/* Compteur haut */}
-      <div
-        aria-live="polite"
-        style={{
-          position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)',
-          background: dark ? 'rgba(0,0,0,0.75)' : 'rgba(255,255,255,0.92)',
-          backdropFilter: 'blur(8px)',
-          padding: '6px 14px', borderRadius: 20,
-          fontSize: 13, fontWeight: 600, color: dark ? '#EEE' : '#1A1A1A',
-          zIndex: 50, boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {spots.length} places PMR dans cette zone
-      </div>
+      {!loading && (
+        <div
+          aria-live="polite"
+          style={{
+            position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)',
+            background: dark ? 'rgba(0,0,0,0.75)' : 'rgba(255,255,255,0.92)',
+            backdropFilter: 'blur(8px)',
+            padding: '6px 14px', borderRadius: 20,
+            fontSize: 13, fontWeight: 600, color: dark ? '#EEE' : '#1A1A1A',
+            zIndex: 50, boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {mapSpots.length} places PMR à Lyon
+        </div>
+      )}
 
       {/* FAB Localiser */}
       <button
@@ -187,8 +231,8 @@ export function MapScreen({ spots, userCoords, dark = false, fontSize = 'normal'
             <div style={{ padding: '0 16px 12px' }}>
               {/* CTA principal */}
               <button
-                onClick={() => nearest && setSelected(nearest)}
-                disabled={!nearest}
+                onClick={() => nearestSpot && setSelected(nearestSpot)}
+                disabled={!nearestSpot || loading}
                 aria-label="Trouver la place PMR la plus proche"
                 data-testid="btn-nearest"
                 style={{
@@ -199,9 +243,10 @@ export function MapScreen({ spots, userCoords, dark = false, fontSize = 'normal'
                   boxShadow: '0 4px 20px rgba(0,102,255,0.35)',
                   marginBottom: 10,
                   WebkitTapHighlightColor: 'transparent',
+                  opacity: loading ? 0.6 : 1,
                 }}
                 onTouchStart={(e) => { (e.currentTarget as HTMLElement).style.opacity = '0.9'; }}
-                onTouchEnd={(e) =>   { (e.currentTarget as HTMLElement).style.opacity = '1'; }}
+                onTouchEnd={(e) =>   { (e.currentTarget as HTMLElement).style.opacity = loading ? '0.6' : '1'; }}
               >
                 <PMRSymbol size={28} color="#FFFFFF" />
                 <span>Place la plus proche</span>
