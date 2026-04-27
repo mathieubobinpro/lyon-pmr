@@ -90,10 +90,9 @@ export async function fetchParkingSpots(): Promise<ParkingSpot[]> {
     url.searchParams.set('OUTPUTFORMAT', 'application/json');
     url.searchParams.set('SRSNAME', 'EPSG:4326');
 
-    const res = await fetch(url.toString(), {
-      signal: controller.signal,
-      headers: { 'User-Agent': 'Lyon-PMR-App/1.0' },
-    });
+    // Ne pas passer de headers custom : 'User-Agent' est un header interdit
+    // côté navigateur — WebKit (iOS) lève une TypeError, causant le fallback MOCK.
+    const res = await fetch(url.toString(), { signal: controller.signal });
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
