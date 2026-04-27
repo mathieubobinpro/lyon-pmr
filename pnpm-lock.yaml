@@ -11,6 +11,9 @@ importers:
       '@fontsource/inter':
         specifier: ^5.2.8
         version: 5.2.8
+      '@types/supercluster':
+        specifier: ^7.1.3
+        version: 7.1.3
       autoprefixer:
         specifier: ^10.5.0
         version: 10.5.0(postcss@8.5.10)
@@ -32,6 +35,9 @@ importers:
       react-dom:
         specifier: ^19.2.5
         version: 19.2.5(react@19.2.5)
+      supercluster:
+        specifier: ^8.0.1
+        version: 8.0.1
       tailwindcss:
         specifier: ^3.4.19
         version: 3.4.19
