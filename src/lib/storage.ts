@@ -1,11 +1,10 @@
 import type { Favorite, FontSize } from '../types';
 
 const KEYS = {
-  favorites:        'lyon-pmr:favorites',
-  darkMode:         'lyon-pmr:dark-mode',
-  fontSize:         'lyon-pmr:font-size',
-  visitCount:       'lyon-pmr:visit-count',
-  geolocDismissed:  'lyon-pmr:geoloc-dismissed',
+  favorites:  'lyon-pmr:favorites',
+  darkMode:   'lyon-pmr:dark-mode',
+  fontSize:   'lyon-pmr:font-size',
+  visitCount: 'lyon-pmr:visit-count',
 } as const;
 
 function get<T>(key: string, fallback: T): T {
@@ -32,8 +31,6 @@ export const storage = {
   setDarkMode:     (v: boolean)  => set(KEYS.darkMode, v),
   getFontSize:     ()            => get<FontSize>(KEYS.fontSize, 'normal'),
   setFontSize:     (v: FontSize) => set(KEYS.fontSize, v),
-  getVisitCount:        ()           => get<number>(KEYS.visitCount, 0),
-  bumpVisitCount:       ()           => set(KEYS.visitCount, get<number>(KEYS.visitCount, 0) + 1),
-  getGeolocDismissed:   ()           => get<boolean>(KEYS.geolocDismissed, false),
-  setGeolocDismissed:   (v: boolean) => set(KEYS.geolocDismissed, v),
+  getVisitCount:   ()            => get<number>(KEYS.visitCount, 0),
+  bumpVisitCount:  ()            => set(KEYS.visitCount, get<number>(KEYS.visitCount, 0) + 1),
 };

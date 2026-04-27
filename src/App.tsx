@@ -15,10 +15,8 @@ import { useGeolocation } from './hooks/useGeolocation';
 import { useNearestSpots } from './hooks/useNearestSpots';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
 
-import { useGeolocationPermission } from './hooks/useGeolocationPermission';
 import { TabBar } from './components/ui/TabBar';
 import { SplashScreen } from './components/ui/SplashScreen';
-import { GeolocationPrompt } from './components/ui/GeolocationPrompt';
 const MapScreen = lazy(() => import('./components/screens/MapScreen').then((m) => ({ default: m.MapScreen })));
 import { ListScreen } from './components/screens/ListScreen';
 import { SettingsScreen } from './components/screens/SettingsScreen';
@@ -38,7 +36,6 @@ export default function App() {
 
   const isOnline = useOnlineStatus();
   const { coords: userCoords, retry: retryGeoloc } = useGeolocation();
-  const { showPrompt: showGeoPrompt, dismiss: dismissGeoPrompt } = useGeolocationPermission();
   const nearbySpots = useNearestSpots(allSpots, userCoords, 2000);
 
   const { needRefresh, updateServiceWorker } = useRegisterSW({
@@ -88,7 +85,6 @@ export default function App() {
 
   return (
     <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', position: 'relative', fontFamily: 'Inter, system-ui, sans-serif', colorScheme: dark ? 'dark' : 'light', background: dark ? '#0F0F12' : '#F5F5F7' }}>
-      {showGeoPrompt && <GeolocationPrompt dark={dark} onDismiss={dismissGeoPrompt} />}
       {splash && <SplashScreen onDone={() => setSplash(false)} />}
       {!isOnline && <OfflineBanner savedAt={offlineSavedAt} dark={dark} />}
       {needRefresh[0] && <UpdateToast onUpdate={() => updateServiceWorker(true)} dark={dark} />}
