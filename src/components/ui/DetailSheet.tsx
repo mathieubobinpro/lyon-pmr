@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { X, ExternalLink, Navigation } from 'lucide-react';
-import type { ParkingSpot, FontSize } from '../../types';
-import { formatDistance, formatWalkTime } from '../../lib/distance';
+import type { ParkingSpot, Coordinates, FontSize } from '../../types';
+import { haversine, formatSpotDistance } from '../../lib/distance';
 import { buildNavUrl, NAV_APPS } from '../../lib/routing';
 import { Badge } from './Badge';
 import { BottomSheet } from './BottomSheet';
@@ -10,29 +10,34 @@ interface Props {
   spot: ParkingSpot;
   dark?: boolean;
   fontSize?: FontSize;
+  /** Position de l'utilisateur — si absente, affiche "Distance inconnue" */
+  userCoords?: Coordinates | null;
   onClose: () => void;
 }
 
 const FS_SCALE: Record<FontSize, number> = { normal: 1, grand: 1.1, 'tres-grand': 1.25 };
 
-export function DetailSheet({ spot, dark = false, fontSize = 'normal', onClose }: Props) {
+export function DetailSheet({ spot, dark = false, fontSize = 'normal', userCoords, onClose }: Props) {
   const [navOpen, setNavOpen] = useState(false);
   const sc = FS_SCALE[fontSize];
-  const dist = spot.distance ?? 0;
-  const distColor = dist < 300 ? '#00C853' : '#0066FF';
+
+  // Distance calculée en temps réel depuis la position GPS
+  const distMeters = userCoords ? haversine(userCoords, spot.coordinates) : null;
+  const distLabel  = formatSpotDistance(distMeters);
+  const distColor  =
+    distMeters === null ? '#6B7280'
+    : distMeters < 300  ? '#00C853'
+    : '#0066FF';
 
   return (
     <BottomSheet title={`Détail — ${spot.address}`} dark={dark} maxHeight="88vh" onClose={onClose}>
       <div style={{ padding: '16px 20px 0' }}>
 
-        {/* En-tête : temps + bouton fermer */}
+        {/* En-tête : distance + bouton fermer */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 4 }}>
           <div>
             <div style={{ fontSize: Math.round(52 * Math.min(sc, 1.1)), fontWeight: 800, color: distColor, lineHeight: 1 }}>
-              {formatWalkTime(dist)}
-            </div>
-            <div style={{ fontSize: Math.round(16 * sc), color: '#6B7280', marginTop: 4 }}>
-              {formatDistance(dist)} · À pied
+              {distLabel}
             </div>
           </div>
           {/* a11y: cible 40px min, label explicite */}

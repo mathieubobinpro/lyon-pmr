@@ -282,6 +282,7 @@ export function MapScreen({
             spot={selected}
             dark={dark}
             fontSize={fontSize}
+            userCoords={userCoords}
             onClose={() => setSelected(null)}
           />
         </div>
