@@ -17,7 +17,11 @@ interface Props {
   fontSize?: FontSize;
   loading?: boolean;
   locateTrigger?: number;
+  /** true si la permission géoloc est explicitement refusée */
+  locationDenied?: boolean;
   onLocate: () => void;
+  /** Ré-ouvre la popin de demande de géolocalisation */
+  onShowGeoPrompt?: () => void;
 }
 
 export function MapScreen({
@@ -28,7 +32,9 @@ export function MapScreen({
   fontSize = 'normal',
   loading = false,
   locateTrigger = 0,
+  locationDenied = false,
   onLocate,
+  onShowGeoPrompt,
 }: Props) {
   const [selected, setSelected]     = useState<ParkingSpot | null>(null);
   const [searchMode, setSearchMode] = useState(false);
@@ -122,24 +128,49 @@ export function MapScreen({
         </div>
       )}
 
-      {/* FAB Localiser */}
-      <button
-        onClick={onLocate}
-        aria-label="Me localiser sur la carte"
-        style={{
-          position: 'absolute',
-          bottom: selected ? '58vh' : '26vh',
-          right: 16,
-          width: 56, height: 56, borderRadius: '50%', border: 'none', cursor: 'pointer',
-          background: dark ? '#2A2A2A' : '#FFFFFF',
-          boxShadow: '0 4px 14px rgba(0,0,0,0.18)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 50, transition: 'bottom 0.3s',
-          WebkitTapHighlightColor: 'transparent',
-        }}
-      >
-        <Crosshair size={24} color="#0066FF" aria-hidden />
-      </button>
+      {/* FAB Localiser (avec badge si géoloc refusée) */}
+      <div style={{
+        position: 'absolute',
+        bottom: selected ? '58vh' : '26vh',
+        right: 16,
+        zIndex: 50,
+        transition: 'bottom 0.3s',
+      }}>
+        <button
+          onClick={locationDenied ? onShowGeoPrompt : onLocate}
+          aria-label={locationDenied
+            ? "Localisation désactivée — tap pour activer"
+            : "Me localiser sur la carte"}
+          style={{
+            width: 56, height: 56, borderRadius: '50%', border: 'none', cursor: 'pointer',
+            background: dark ? '#2A2A2A' : '#FFFFFF',
+            boxShadow: '0 4px 14px rgba(0,0,0,0.18)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            WebkitTapHighlightColor: 'transparent',
+          }}
+        >
+          <Crosshair size={24} color={locationDenied ? '#F59E0B' : '#0066FF'} aria-hidden />
+        </button>
+
+        {/* Badge persistant "géoloc désactivée" */}
+        {locationDenied && (
+          <div
+            aria-label="Localisation désactivée"
+            style={{
+              position: 'absolute', top: -4, right: -4,
+              width: 20, height: 20, borderRadius: '50%',
+              background: '#F59E0B',
+              border: '2.5px solid white',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 11, fontWeight: 800, color: '#FFFFFF',
+              pointerEvents: 'none',
+            }}
+            aria-hidden
+          >
+            !
+          </div>
+        )}
+      </div>
 
       {/* Bottom sheet — état accueil */}
       {!selected && (
