@@ -20,7 +20,9 @@ import { storage } from '../lib/storage';
  * @param geoErrorMessage  Message d'erreur de useGeolocation (fallback path B)
  */
 export function useGeolocationPermission(geoErrorMessage: string | null) {
-  const [showPrompt, setShowPrompt] = useState(false);
+  const [showPrompt, setShowPrompt]       = useState(false);
+  // true tant que la permission est denied, quelle que soit la modale
+  const [isLocationDenied, setDenied]    = useState(false);
 
   // ── Chemin A : API Permissions ──────────────────────────────────────────────
   useEffect(() => {
@@ -28,7 +30,9 @@ export function useGeolocationPermission(geoErrorMessage: string | null) {
 
     navigator.permissions.query({ name: 'geolocation' }).then((result) => {
       const evaluate = (state: PermissionState) => {
-        if (state === 'denied' && !storage.getGeolocDismissed()) {
+        const denied = state === 'denied';
+        setDenied(denied);
+        if (denied && !storage.getGeolocDismissed()) {
           setShowPrompt(true);
         } else if (state === 'granted') {
           // L'utilisateur vient de réactiver → on efface le flag de dismiss
@@ -55,6 +59,7 @@ export function useGeolocationPermission(geoErrorMessage: string | null) {
 
     // Le message de refus est posé par useGeolocation
     if (geoErrorMessage.includes('Permission refusée')) {
+      setDenied(true);
       setShowPrompt(true);
     }
   }, [geoErrorMessage]);
@@ -64,5 +69,5 @@ export function useGeolocationPermission(geoErrorMessage: string | null) {
     setShowPrompt(false);
   };
 
-  return { showPrompt, dismiss };
+  return { showPrompt, dismiss, isLocationDenied };
 }

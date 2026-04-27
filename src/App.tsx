@@ -41,7 +41,7 @@ export default function App() {
 
   // Message d'erreur exposé pour le fallback sans API Permissions (vieux Safari)
   const geoErrorMsg = geoState.status === 'error' ? geoState.message : null;
-  const { showPrompt: showGeoPrompt, dismiss: dismissGeoPrompt } = useGeolocationPermission(geoErrorMsg);
+  const { showPrompt: showGeoPrompt, dismiss: dismissGeoPrompt, isLocationDenied } = useGeolocationPermission(geoErrorMsg);
 
   const nearbySpots = useNearestSpots(allSpots, userCoords, 2000);
 
@@ -108,6 +108,7 @@ export default function App() {
                 fontSize={fontSize}
                 loading={loading}
                 locateTrigger={locateTrigger}
+                locationDenied={isLocationDenied}
                 onLocate={handleLocate}
               />
           </Suspense>
