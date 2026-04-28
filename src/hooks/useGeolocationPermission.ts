@@ -4,60 +4,62 @@ import { storage } from '../lib/storage';
 /**
  * Gère l'affichage de la modale de demande de géolocalisation.
  *
- * Deux chemins selon le support navigateur :
+ * Deux chemins complémentaires (pas exclusifs) :
  *
- * A) navigator.permissions disponible (Chrome, Firefox, Edge…)
- *    - granted  → rien
- *    - prompt   → demande native déjà déclenchée par useGeolocation, rien à faire
- *    - denied   → modale custom (si non dismissée)
- *    - Surveille les changements en temps réel (ex : réactivation depuis les réglages)
+ * A) navigator.permissions.query()
+ *    → détecte l'état "déjà refusé" au chargement de la page
+ *    → try/catch car certains iOS rejettent la query 'geolocation'
+ *    → sur iOS, PermissionStatus.change ne fire PAS après un refus natif
+ *      en cours de session, d'où la nécessité de Chemin B en complément
  *
- * B) navigator.permissions absent (vieux Safari, WebView…)
- *    - useGeolocation a déjà appelé getCurrentPosition ; on observe son résultat
- *    - Si l'état est une erreur PERMISSION_DENIED → modale custom
- *    - Pas de second appel GPS redondant
+ * B) geoErrorMessage de useGeolocation (filet de sécurité universel)
+ *    → s'active dès que getCurrentPosition retourne PERMISSION_DENIED
+ *    → couvre : refus natif en cours de session, iOS sans onchange,
+ *      navigateurs où query() est buggy ou absent
+ *    → pas de guard "si permissions existe" : les deux chemins coexistent
  *
- * @param geoErrorMessage  Message d'erreur de useGeolocation (fallback path B)
+ * @param geoErrorMessage  Message d'erreur exposé par useGeolocation
  */
 export function useGeolocationPermission(geoErrorMessage: string | null) {
-  const [showPrompt, setShowPrompt]       = useState(false);
-  // true tant que la permission est denied, quelle que soit la modale
-  const [isLocationDenied, setDenied]    = useState(false);
+  const [showPrompt, setShowPrompt]    = useState(false);
+  const [isLocationDenied, setDenied] = useState(false);
 
-  // ── Chemin A : API Permissions ──────────────────────────────────────────────
+  // ── Chemin A : détection à l'initialisation via l'API Permissions ──────────
   useEffect(() => {
-    if (!navigator.permissions) return; // géré par le chemin B
+    if (!navigator.permissions) return;
 
-    navigator.permissions.query({ name: 'geolocation' }).then((result) => {
-      const evaluate = (state: PermissionState) => {
-        const denied = state === 'denied';
-        setDenied(denied);
-        if (denied && !storage.getGeolocDismissed()) {
-          setShowPrompt(true);
-        } else if (state === 'granted') {
-          // L'utilisateur vient de réactiver → on efface le flag de dismiss
-          storage.setGeolocDismissed(false);
-          setShowPrompt(false);
-        } else {
-          // prompt ou accordé précédemment
-          setShowPrompt(false);
-        }
-      };
+    (async () => {
+      try {
+        const result = await navigator.permissions.query({ name: 'geolocation' });
 
-      evaluate(result.state);
-      result.addEventListener('change', () => evaluate(result.state));
-    });
+        const evaluate = (state: PermissionState) => {
+          const denied = state === 'denied';
+          setDenied(denied);
+          if (denied && !storage.getGeolocDismissed()) {
+            setShowPrompt(true);
+          } else if (state === 'granted') {
+            storage.setGeolocDismissed(false);
+            setShowPrompt(false);
+          }
+        };
+
+        evaluate(result.state);
+        // onchange ne fire pas sur iOS — Chemin B prend le relais pour ce cas
+        result.addEventListener('change', () => evaluate(result.state));
+      } catch {
+        // permissions.query('geolocation') non supportée sur ce navigateur
+        // → Chemin B gère tout
+      }
+    })();
   }, []);
 
-  // ── Chemin B : fallback sans API Permissions ────────────────────────────────
-  // useGeolocation a déjà tenté getCurrentPosition ; si le message indique un
-  // refus explicite (code PERMISSION_DENIED), on affiche la modale.
+  // ── Chemin B : filet de sécurité universel basé sur l'erreur GPS ───────────
+  // S'exécute toujours (pas de guard navigator.permissions).
+  // Couvre le refus natif en cours de session sur iOS où onchange ne fire pas.
   useEffect(() => {
-    if (navigator.permissions) return; // chemin A actif, ne pas interférer
-    if (!geoErrorMessage)        return;
+    if (!geoErrorMessage) return;
     if (storage.getGeolocDismissed()) return;
 
-    // Le message de refus est posé par useGeolocation
     if (geoErrorMessage.includes('Permission refusée')) {
       setDenied(true);
       setShowPrompt(true);
@@ -69,7 +71,6 @@ export function useGeolocationPermission(geoErrorMessage: string | null) {
     setShowPrompt(false);
   };
 
-  /** Ré-ouvre la popin manuellement (ex : tap sur le badge géoloc désactivée). */
   const show = () => setShowPrompt(true);
 
   return { showPrompt, show, dismiss, isLocationDenied };
