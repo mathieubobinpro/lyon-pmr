@@ -2,14 +2,16 @@ import type { GeocodingResult } from '../types';
 
 const BAN_URL = 'https://api-adresse.data.gouv.fr/search/';
 
-/** Géocode une adresse via l'API BAN. Filtre sur le département 69 (Lyon). */
+/** Géocode une adresse via l'API BAN, biaisée vers Lyon. */
 export async function searchAddress(query: string, signal?: AbortSignal): Promise<GeocodingResult[]> {
   if (query.trim().length < 3) return [];
 
   const url = new URL(BAN_URL);
   url.searchParams.set('q', query);
-  url.searchParams.set('limit', '4');
-  url.searchParams.set('citycode', '69');
+  url.searchParams.set('limit', '5');
+  // Biais géographique vers Lyon (sans hard-filter par citycode invalide)
+  url.searchParams.set('lat', '45.7640');
+  url.searchParams.set('lon', '4.8357');
 
   try {
     const res = await fetch(url.toString(), { signal });

@@ -12,6 +12,7 @@ interface Props {
   selectedSpot: ParkingSpot | null;
   onSelectSpot: (spot: ParkingSpot) => void;
   locateTrigger?: number;
+  searchTarget?: Coordinates | null;
   dark?: boolean;
 }
 
@@ -22,7 +23,7 @@ const INITIAL_ZOOM  = 14;
 // Tailles des cercles de cluster (px)
 const clusterSize = (count: number) => (count < 10 ? 36 : count < 50 ? 44 : 54);
 
-export function MapView({ spots, userCoords, selectedSpot, onSelectSpot, locateTrigger = 0, dark = false }: Props) {
+export function MapView({ spots, userCoords, selectedSpot, onSelectSpot, locateTrigger = 0, searchTarget = null, dark = false }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef       = useRef<maplibregl.Map | null>(null);
   // Holds both cluster markers (key "c-{id}") and individual spot markers (key "s-{id}")
@@ -264,6 +265,14 @@ export function MapView({ spots, userCoords, selectedSpot, onSelectSpot, locateT
       });
     }
   }, [selectedSpot]);
+
+  // Fly to address search result
+  useEffect(() => {
+    const map = mapRef.current;
+    if (map && searchTarget) {
+      map.flyTo({ center: [searchTarget.lng, searchTarget.lat], zoom: 15, duration: 600 });
+    }
+  }, [searchTarget]);
 
   return (
     <div

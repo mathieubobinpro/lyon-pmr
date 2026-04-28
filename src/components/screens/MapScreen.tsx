@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Crosshair, Search, X, ChevronLeft } from 'lucide-react';
 import type { ParkingSpot, Coordinates, FontSize } from '../../types';
 import { MapView } from '../map/MapView';
@@ -36,34 +36,74 @@ export function MapScreen({
   onLocate,
   onShowGeoPrompt,
 }: Props) {
-  const [selected, setSelected]     = useState<ParkingSpot | null>(null);
-  const [searchMode, setSearchMode] = useState(false);
-  const [searchVal, setSearchVal]   = useState('');
-  const [results, setResults]       = useState<GeocodingResult[]>([]);
-  const abortRef = useRef<AbortController | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [selected, setSelected]         = useState<ParkingSpot | null>(null);
+  const [searchMode, setSearchMode]     = useState(false);
+  const [searchVal, setSearchVal]       = useState('');
+  const [results, setResults]           = useState<GeocodingResult[]>([]);
+  const [activeIdx, setActiveIdx]       = useState(-1);
+  const [searchTarget, setSearchTarget] = useState<Coordinates | null>(null);
+  const abortRef    = useRef<AbortController | null>(null);
+  const inputRef    = useRef<HTMLInputElement>(null);
+  const searchPanel = useRef<HTMLDivElement>(null);
 
   // Focus auto quand on passe en mode recherche
   useEffect(() => {
     if (searchMode) setTimeout(() => inputRef.current?.focus(), 80);
   }, [searchMode]);
 
-  // Recherche d'adresse avec debounce 400ms
+  // Recherche d'adresse avec debounce 300ms
   useEffect(() => {
+    setActiveIdx(-1);
     if (searchVal.length < 3) { setResults([]); return; }
     const t = setTimeout(async () => {
       abortRef.current?.abort();
       abortRef.current = new AbortController();
       const res = await searchAddress(searchVal, abortRef.current.signal);
       setResults(res);
-    }, 400);
+    }, 300);
     return () => clearTimeout(t);
   }, [searchVal]);
 
-  const closeSearch = () => {
+  // Fermeture au clic en dehors du panel de recherche
+  useEffect(() => {
+    if (!searchMode) return;
+    const handler = (e: MouseEvent) => {
+      if (searchPanel.current && !searchPanel.current.contains(e.target as Node)) {
+        closeSearch();
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [searchMode]);
+
+  const closeSearch = useCallback(() => {
     setSearchMode(false);
     setSearchVal('');
     setResults([]);
+    setActiveIdx(-1);
+  }, []);
+
+  const selectResult = useCallback((r: GeocodingResult) => {
+    setSearchVal(r.label);
+    setResults([]);
+    setActiveIdx(-1);
+    setSearchTarget({ ...r.coordinates });
+    setSearchMode(false);
+  }, []);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Escape') { closeSearch(); return; }
+    if (!results.length) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActiveIdx(i => Math.min(i + 1, results.length - 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActiveIdx(i => Math.max(i - 1, -1));
+    } else if (e.key === 'Enter' && activeIdx >= 0) {
+      e.preventDefault();
+      selectResult(results[activeIdx]);
+    }
   };
 
   return (
@@ -75,6 +115,7 @@ export function MapScreen({
         selectedSpot={selected}
         onSelectSpot={setSelected}
         locateTrigger={locateTrigger}
+        searchTarget={searchTarget}
         dark={dark}
       />
 
@@ -188,7 +229,7 @@ export function MapScreen({
 
           {/* MODE RECHERCHE */}
           {searchMode ? (
-            <div style={{ padding: '0 16px 16px' }}>
+            <div ref={searchPanel} style={{ padding: '0 16px 16px' }}>
               <div style={{
                 display: 'flex', alignItems: 'center', gap: 10,
                 background: dark ? '#2A2A2A' : '#F5F5F7', borderRadius: 14,
@@ -198,9 +239,15 @@ export function MapScreen({
                 <input
                   ref={inputRef}
                   type="search"
+                  role="combobox"
+                  aria-expanded={results.length > 0}
+                  aria-autocomplete="list"
+                  aria-controls="search-results"
+                  aria-activedescendant={activeIdx >= 0 ? `result-${activeIdx}` : undefined}
                   placeholder="Adresse, lieu…"
                   value={searchVal}
                   onChange={(e) => setSearchVal(e.target.value)}
+                  onKeyDown={handleKeyDown}
                   aria-label="Rechercher une adresse à Lyon"
                   style={{
                     flex: 1, background: 'transparent', border: 'none', outline: 'none',
@@ -209,7 +256,7 @@ export function MapScreen({
                 />
                 {searchVal && (
                   <button
-                    onClick={() => { setSearchVal(''); setResults([]); inputRef.current?.focus(); }}
+                    onClick={() => { setSearchVal(''); setResults([]); setActiveIdx(-1); inputRef.current?.focus(); }}
                     aria-label="Effacer la recherche"
                     style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}
                   >
@@ -219,29 +266,43 @@ export function MapScreen({
               </div>
 
               {results.length > 0 && (
-                <div style={{
-                  marginTop: 8,
-                  background: dark ? '#2A2A2A' : '#FFFFFF', borderRadius: 14,
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.15)', overflow: 'hidden',
-                }}>
+                <ul
+                  id="search-results"
+                  role="listbox"
+                  aria-label="Suggestions d'adresses"
+                  style={{
+                    marginTop: 8, listStyle: 'none', padding: 0,
+                    background: dark ? '#2A2A2A' : '#FFFFFF', borderRadius: 14,
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.15)', overflow: 'hidden',
+                  }}
+                >
                   {results.map((r, i) => (
-                    <button
+                    <li
                       key={i}
-                      onClick={() => { setSearchVal(r.label); setResults([]); }}
-                      style={{
-                        width: '100%', padding: '12px 16px', border: 'none',
-                        background: 'transparent', textAlign: 'left', cursor: 'pointer',
-                        fontSize: 15, color: dark ? '#EEE' : '#1A1A1A',
-                        borderBottom: i < results.length - 1 ? `1px solid ${dark ? '#333' : '#E5E7EB'}` : 'none',
-                        minHeight: 56,
-                      }}
-                      aria-label={r.label}
+                      id={`result-${i}`}
+                      role="option"
+                      aria-selected={i === activeIdx}
                     >
-                      <div style={{ fontWeight: 600 }}>{r.name}</div>
-                      <div style={{ fontSize: 13, color: '#6B7280' }}>{r.city}</div>
-                    </button>
+                      <button
+                        onClick={() => selectResult(r)}
+                        style={{
+                          width: '100%', padding: '12px 16px', border: 'none',
+                          background: i === activeIdx
+                            ? (dark ? '#3A3A3A' : '#EEF4FF')
+                            : 'transparent',
+                          textAlign: 'left', cursor: 'pointer',
+                          fontSize: 15, color: dark ? '#EEE' : '#1A1A1A',
+                          borderBottom: i < results.length - 1 ? `1px solid ${dark ? '#333' : '#E5E7EB'}` : 'none',
+                          minHeight: 56,
+                        }}
+                        aria-label={r.label}
+                      >
+                        <div style={{ fontWeight: 600 }}>{r.name}</div>
+                        <div style={{ fontSize: 13, color: '#6B7280' }}>{r.city}</div>
+                      </button>
+                    </li>
                   ))}
-                </div>
+                </ul>
               )}
 
               <button
