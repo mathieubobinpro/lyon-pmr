@@ -108,7 +108,7 @@ export default function App() {
                 fontSize={fontSize}
                 loading={loading}
                 locateTrigger={locateTrigger}
-                locationDenied={isLocationDenied}
+                locationDenied={isLocationDenied || geoState.status === 'error'}
                 onLocate={handleLocate}
                 onShowGeoPrompt={showGeoPromptModal}
               />
