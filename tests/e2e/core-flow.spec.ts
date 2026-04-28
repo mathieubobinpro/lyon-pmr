@@ -12,6 +12,13 @@ async function waitForApp(page: import('@playwright/test').Page) {
   // Splash dure 1800ms, on attend jusqu'à 8s pour absorber la latence des tests parallèles
   await expect(page.locator('[role="status"]')).toBeVisible({ timeout: 3000 }).catch(() => {});
   await expect(page.locator('[role="status"]')).not.toBeVisible({ timeout: 8000 });
+
+  // En CI la géoloc est refusée → la modale peut apparaître et bloquer les interactions
+  const geoDialog = page.locator('[role="dialog"][aria-labelledby="geoloc-title"]');
+  if (await geoDialog.isVisible().catch(() => false)) {
+    await page.locator('button', { hasText: 'Continuer sans localisation' }).tap();
+    await expect(geoDialog).not.toBeVisible({ timeout: 2000 });
+  }
 }
 
 // ── Parcours core ──────────────────────────────────────────────────────────────
