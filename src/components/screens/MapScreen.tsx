@@ -133,7 +133,7 @@ export function MapScreen({
         position: 'absolute',
         bottom: selected ? '58vh' : '26vh',
         right: 16,
-        zIndex: 50,
+        zIndex: 110,
         transition: 'bottom 0.3s',
       }}>
         <button
