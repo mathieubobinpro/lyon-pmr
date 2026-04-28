@@ -33,14 +33,16 @@ export function useGeolocationPermission(geoErrorMessage: string | null) {
         const result = await navigator.permissions.query({ name: 'geolocation' });
 
         const evaluate = (state: PermissionState) => {
-          const denied = state === 'denied';
-          setDenied(denied);
-          if (denied && !storage.getGeolocDismissed()) {
-            setShowPrompt(true);
+          if (state === 'denied') {
+            setDenied(true);
+            if (!storage.getGeolocDismissed()) setShowPrompt(true);
           } else if (state === 'granted') {
+            // L'utilisateur vient de réactiver → efface le denied posé par Chemin B
+            setDenied(false);
             storage.setGeolocDismissed(false);
             setShowPrompt(false);
           }
+          // 'prompt' : on ne touche rien — Chemin B est seul arbitre sur iOS
         };
 
         evaluate(result.state);
