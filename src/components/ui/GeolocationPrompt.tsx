@@ -60,27 +60,20 @@ export function GeolocationPrompt({ dark = false, onDismiss }: Props) {
     >
       {/* Carte modale */}
       <div style={{
-        width: '100%', maxWidth: 440,
+        width: '100%', maxWidth: 360,
         background: dark ? '#1E1E1E' : '#FFFFFF',
-        borderRadius: 24,
-        padding: '28px 24px 32px',
+        borderRadius: 20,
+        padding: '20px 20px 24px',
         boxShadow: '0 8px 40px rgba(0,0,0,0.25)',
         display: 'flex', flexDirection: 'column', alignItems: 'center',
       }}>
 
-        {/* Handle */}
-        <div style={{
-          width: 40, height: 4, borderRadius: 2,
-          background: dark ? '#444' : '#DDD',
-          marginBottom: 28,
-        }} />
-
         {/* Icône */}
         <div style={{
-          width: 72, height: 72, borderRadius: '50%',
+          width: 52, height: 52, borderRadius: '50%',
           background: '#EEF4FF',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 34, marginBottom: 20,
+          fontSize: 24, marginBottom: 12,
         }} aria-hidden>
           📍
         </div>
@@ -89,9 +82,9 @@ export function GeolocationPrompt({ dark = false, onDismiss }: Props) {
         <h2
           id="geoloc-title"
           style={{
-            fontSize: 22, fontWeight: 800, textAlign: 'center',
+            fontSize: 18, fontWeight: 800, textAlign: 'center',
             color: dark ? '#F0F0F0' : '#1A1A1A',
-            margin: '0 0 10px',
+            margin: '0 0 6px',
           }}
         >
           Activez votre localisation
@@ -101,8 +94,8 @@ export function GeolocationPrompt({ dark = false, onDismiss }: Props) {
         <p
           id="geoloc-desc"
           style={{
-            fontSize: 15, color: '#6B7280', textAlign: 'center',
-            margin: '0 0 24px', lineHeight: 1.55, maxWidth: 310,
+            fontSize: 13, color: '#6B7280', textAlign: 'center',
+            margin: '0 0 16px', lineHeight: 1.5,
           }}
         >
           Pour trouver les places PMR les plus proches de vous, l'app a besoin de votre position.
@@ -112,19 +105,19 @@ export function GeolocationPrompt({ dark = false, onDismiss }: Props) {
         <div style={{
           width: '100%',
           background: dark ? '#2A2A2A' : '#F5F5F7',
-          borderRadius: 16, padding: '16px 18px',
-          marginBottom: 24,
+          borderRadius: 12, padding: '12px 14px',
+          marginBottom: 16,
         }}>
           <p style={{
-            fontSize: 11, fontWeight: 700, color: '#6B7280',
-            margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: 0.8,
+            fontSize: 10, fontWeight: 700, color: '#6B7280',
+            margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 0.8,
           }}>
             Comment activer
           </p>
-          <ol style={{ margin: 0, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <ol style={{ margin: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 5 }}>
             {steps.map((step, i) => (
               <li key={i} style={{
-                fontSize: 14, lineHeight: 1.45,
+                fontSize: 13, lineHeight: 1.4,
                 color: dark ? '#D0D0D0' : '#374151',
               }}>
                 {step}
@@ -138,17 +131,17 @@ export function GeolocationPrompt({ dark = false, onDismiss }: Props) {
           onClick={() => window.location.reload()}
           aria-label="Recharger la page après avoir activé la localisation"
           style={{
-            width: '100%', height: 56, borderRadius: 16,
+            width: '100%', height: 48, borderRadius: 14,
             border: 'none', cursor: 'pointer',
             background: '#0066FF', color: '#FFFFFF',
-            fontSize: 17, fontWeight: 700,
-            marginBottom: 12,
+            fontSize: 15, fontWeight: 700,
+            marginBottom: 8,
             WebkitTapHighlightColor: 'transparent',
           }}
           onTouchStart={(e) => { (e.currentTarget as HTMLElement).style.opacity = '0.9'; }}
           onTouchEnd={(e)   => { (e.currentTarget as HTMLElement).style.opacity = '1'; }}
         >
-          J'ai activé la localisation →  Recharger
+          J'ai activé la localisation → Recharger
         </button>
 
         {/* CTA secondaire */}
@@ -156,11 +149,11 @@ export function GeolocationPrompt({ dark = false, onDismiss }: Props) {
           onClick={onDismiss}
           aria-label="Continuer sans localisation"
           style={{
-            width: '100%', height: 52, borderRadius: 14,
+            width: '100%', height: 42, borderRadius: 12,
             cursor: 'pointer', background: 'transparent',
             border: `1.5px solid ${dark ? '#333' : '#E5E7EB'}`,
             color: dark ? '#AAA' : '#6B7280',
-            fontSize: 16, fontWeight: 500,
+            fontSize: 14, fontWeight: 500,
             WebkitTapHighlightColor: 'transparent',
           }}
         >
