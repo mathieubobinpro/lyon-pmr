@@ -54,16 +54,17 @@ export function GeolocationPrompt({ dark = false, onDismiss }: Props) {
         background: 'rgba(0,0,0,0.5)',
         backdropFilter: 'blur(6px)',
         WebkitBackdropFilter: 'blur(6px)',
-        display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: '24px 16px',
       }}
     >
       {/* Carte modale */}
       <div style={{
-        width: '100%', maxWidth: 480,
+        width: '100%', maxWidth: 440,
         background: dark ? '#1E1E1E' : '#FFFFFF',
-        borderRadius: '24px 24px 0 0',
-        padding: `28px 24px calc(32px + env(safe-area-inset-bottom, 0px))`,
-        boxShadow: '0 -8px 40px rgba(0,0,0,0.2)',
+        borderRadius: 24,
+        padding: '28px 24px 32px',
+        boxShadow: '0 8px 40px rgba(0,0,0,0.25)',
         display: 'flex', flexDirection: 'column', alignItems: 'center',
       }}>
 
