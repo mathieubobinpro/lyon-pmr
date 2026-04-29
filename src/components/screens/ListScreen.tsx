@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import type { ParkingSpot, FontSize } from '../../types';
+import type { ParkingSpot, Coordinates, FontSize } from '../../types';
 import { PlaceCard } from '../ui/PlaceCard';
 import { DetailSheet } from '../ui/DetailSheet';
 
 interface Props {
   spots: ParkingSpot[];
+  userCoords?: Coordinates | null;
   dark?: boolean;
   fontSize?: FontSize;
   loading?: boolean;
@@ -34,7 +35,7 @@ function SkeletonCard({ dark }: { dark: boolean }) {
   );
 }
 
-export function ListScreen({ spots, dark = false, fontSize = 'normal', loading = false }: Props) {
+export function ListScreen({ spots, userCoords = null, dark = false, fontSize = 'normal', loading = false }: Props) {
   const [selected, setSelected] = useState<ParkingSpot | null>(null);
 
   if (selected) {
@@ -46,6 +47,7 @@ export function ListScreen({ spots, dark = false, fontSize = 'normal', loading =
             spot={selected}
             dark={dark}
             fontSize={fontSize}
+            userCoords={userCoords}
             onClose={() => setSelected(null)}
           />
         </div>

@@ -114,7 +114,7 @@ export default function App() {
               />
           </Suspense>
         )}
-        {tab === 'list' && <ListScreen spots={nearbySpots} dark={dark} fontSize={fontSize} loading={loading} />}
+        {tab === 'list' && <ListScreen spots={nearbySpots} userCoords={userCoords} dark={dark} fontSize={fontSize} loading={loading} />}
         {tab === 'settings' && <SettingsScreen dark={dark} fontSize={fontSize} dataUpdatedAt={dataUpdatedAt} onSetDark={handleSetDark} onSetFontSize={handleSetFontSize} />}
       </div>
 
