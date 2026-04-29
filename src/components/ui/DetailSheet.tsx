@@ -64,7 +64,6 @@ export function DetailSheet({ spot, dark = false, fontSize = 'normal', userCoord
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
           <Badge label={`${spot.nbPlaces} place${spot.nbPlaces > 1 ? 's' : ''}`} variant="primary" dark={dark} />
           <Badge label={spot.configuration === 'unknown' ? 'Voirie' : spot.configuration} variant="primary" dark={dark} />
-          <Badge label="✓ Accessible" variant="success" dark={dark} />
         </div>
 
         {/* CTA principal — 72px, cible principale */}
