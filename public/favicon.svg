@@ -1,23 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- Fond arrondi -->
   <rect width="32" height="32" rx="7" fill="#0066FF"/>
-  <!-- Pin centré dans l'icône -->
-  <g transform="translate(16,16) scale(0.52) translate(-39,-50)">
-    <!-- Pin shape -->
-    <path d="M39 2C21.33 2 7 16.33 7 34 C7 55 39 98 39 98 S71 55 71 34 C71 16.33 56.67 2 39 2Z" fill="white"/>
-    <!-- Route -->
-    <path d="M26 74 Q31 66 39 63 Q47 60 52 52" stroke="#0066FF" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.5"/>
-    <!-- Tête -->
-    <circle cx="43" cy="16" r="5.5" fill="#0066FF"/>
-    <!-- Torse -->
-    <path d="M44 23 L40 23 L38 30 L40.5 30 L42 25.5Z" fill="#0066FF"/>
-    <!-- Bras -->
-    <path d="M41 26 L50 23.5 L50 25 L41.5 27.5Z" fill="#0066FF"/>
-    <!-- Siège -->
-    <path d="M38 30 L37.5 37 L45 37 L45 39 L47.5 39 L47.5 35.5 L40 35.5 L40.5 30Z" fill="#0066FF"/>
-    <!-- Grande roue -->
-    <path d="M29 48 C22.93 48 18 43.07 18 37 C18 30.93 22.93 26 29 26 C35.07 26 40 30.93 40 37 C40 43.07 35.07 48 29 48Z M29 45 C33.42 45 37 41.42 37 37 C37 32.58 33.42 29 29 29 C24.58 29 21 32.58 21 37 C21 41.42 24.58 45 29 45Z" fill="#0066FF" fill-rule="evenodd"/>
-    <!-- Petite roue -->
-    <circle cx="46.5" cy="39.5" r="2.5" fill="#0066FF"/>
+  <!-- Pin logo centré, viewBox 100x120 → scale 0.22 → 22x26.4, centré dans 32x32 -->
+  <g transform="translate(5, 3) scale(0.22)">
+    <path d="M50 5 C27 5,8 24,8 46 C8 68,50 118,50 118 C50 118,92 68,92 46 C92 24,73 5,50 5Z" fill="white"/>
+    <circle cx="50" cy="44" r="31" fill="#0066FF"/>
+    <circle cx="57" cy="26" r="4.5" fill="white"/>
+    <path d="M59 33 L54 33 L51 42 L55 42 L57 36Z" fill="white"/>
+    <path d="M55 37 L65 34 L65 36 L56 39Z" fill="white"/>
+    <path d="M51 42 L50 52 L61 52 L61 55 L64 55 L64 50 L54 50 L55 42Z" fill="white"/>
+    <path d="M36 52 A12 12 0 1 0 60 52 A12 12 0 1 0 36 52Z M40 52 A8 8 0 1 0 56 52 A8 8 0 1 0 40 52Z" fill="white" fill-rule="evenodd"/>
+    <circle cx="63" cy="55" r="3" fill="white"/>
   </g>
 </svg>

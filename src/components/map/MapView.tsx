@@ -3,8 +3,7 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import Supercluster, { type ClusterProperties } from 'supercluster';
 import type { ParkingSpot, Coordinates } from '../../types';
-import { PMRSymbol } from '../ui/PMRSymbol';
-import { renderToStaticMarkup } from 'react-dom/server';
+import { pinMarkerSVG } from '../ui/AppLogo';
 
 interface Props {
   spots: ParkingSpot[];
@@ -167,43 +166,23 @@ export function MapView({ spots, userCoords, selectedSpot, onSelectSpot, locateT
         const existing = markersRef.current.get(key);
 
         if (existing) {
-          // Update selection state in-place (avoids recreating the marker)
-          const el = existing.getElement();
-          el.style.background = isSelected ? '#0066FF' : '#FFFFFF';
-          el.style.boxShadow  = isSelected
-            ? '0 0 0 3px rgba(0,102,255,0.3), 0 4px 12px rgba(0,102,255,0.4)'
-            : '0 2px 8px rgba(0,0,0,0.2)';
-          el.innerHTML = renderToStaticMarkup(
-            <PMRSymbol size={22} color={isSelected ? '#FFFFFF' : '#0066FF'} />,
-          );
+          // Mise à jour de l'état de sélection sans recréer le marqueur
+          existing.getElement().innerHTML = pinMarkerSVG(isSelected);
           return;
         }
 
         const el = document.createElement('div');
-        el.style.cssText = `
-          width: 40px; height: 40px; border-radius: 50%; cursor: pointer;
-          background: ${isSelected ? '#0066FF' : '#FFFFFF'};
-          box-shadow: ${
-            isSelected
-              ? '0 0 0 3px rgba(0,102,255,0.3), 0 4px 12px rgba(0,102,255,0.4)'
-              : '0 2px 8px rgba(0,0,0,0.2)'
-          };
-          display: flex; align-items: center; justify-content: center;
-          transition: transform 0.15s;
-        `;
         el.setAttribute('role', 'button');
         el.setAttribute('aria-label', `Place PMR — ${spot.address}`);
         el.setAttribute('tabindex', '0');
-        el.innerHTML = renderToStaticMarkup(
-          <PMRSymbol size={22} color={isSelected ? '#FFFFFF' : '#0066FF'} />,
-        );
+        el.innerHTML = pinMarkerSVG(isSelected);
 
         el.addEventListener('click',   () => onSelectSpot(spot));
         el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') onSelectSpot(spot); });
 
         markersRef.current.set(
           key,
-          new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat([lng, lat]).addTo(map),
+          new maplibregl.Marker({ element: el, anchor: 'bottom' }).setLngLat([lng, lat]).addTo(map),
         );
       }
     });
