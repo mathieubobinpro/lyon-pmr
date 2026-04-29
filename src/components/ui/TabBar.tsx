@@ -1,4 +1,4 @@
-import { Map, List, Settings } from 'lucide-react';
+import { Map, List, Star, Settings } from 'lucide-react';
 import type { ActiveTab, FontSize } from '../../types';
 
 interface Props {
@@ -9,9 +9,10 @@ interface Props {
 }
 
 const TABS: { id: ActiveTab; label: string; Icon: typeof Map }[] = [
-  { id: 'map',      label: 'Carte',    Icon: Map },
-  { id: 'list',     label: 'Liste',    Icon: List },
-  { id: 'settings', label: 'Réglages', Icon: Settings },
+  { id: 'map',       label: 'Carte',    Icon: Map },
+  { id: 'list',      label: 'Liste',    Icon: List },
+  { id: 'favorites', label: 'Favoris',  Icon: Star },
+  { id: 'settings',  label: 'Réglages', Icon: Settings },
 ];
 
 export function TabBar({ active, onChange, dark = false, fontSize = 'normal' }: Props) {

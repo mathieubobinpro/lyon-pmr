@@ -1,18 +1,19 @@
 import { useState } from 'react';
 import { Trash2 } from 'lucide-react';
-import type { ParkingSpot, Favorite, FontSize } from '../../types';
+import type { ParkingSpot, Favorite, FontSize, Coordinates } from '../../types';
 import { DetailSheet } from '../ui/DetailSheet';
-import { formatDistance } from '../../lib/distance';
+import { haversine, formatDistance } from '../../lib/distance';
 
 interface Props {
   spots: ParkingSpot[];
   favorites: Favorite[];
   dark?: boolean;
   fontSize?: FontSize;
+  userCoords?: Coordinates | null;
   onRemoveFavorite: (favId: string) => void;
 }
 
-export function FavoritesScreen({ spots, favorites, dark = false, fontSize = 'normal', onRemoveFavorite }: Props) {
+export function FavoritesScreen({ spots, favorites, dark = false, fontSize = 'normal', userCoords, onRemoveFavorite }: Props) {
   const [selected, setSelected] = useState<ParkingSpot | null>(null);
 
   if (selected) {
@@ -24,6 +25,7 @@ export function FavoritesScreen({ spots, favorites, dark = false, fontSize = 'no
             spot={selected}
             dark={dark}
             fontSize={fontSize}
+            userCoords={userCoords}
             onClose={() => setSelected(null)}
           />
         </div>
@@ -65,6 +67,7 @@ export function FavoritesScreen({ spots, favorites, dark = false, fontSize = 'no
           <ul style={{ listStyle: 'none', padding: 0, margin: 0 }} aria-label="Mes favoris">
             {favorites.map((fav) => {
               const spot = spots.find((s) => s.id === fav.spotId) ?? spots[0];
+              const distMeters = (userCoords && spot) ? haversine(userCoords, spot.coordinates) : null;
               return (
                 <li
                   key={fav.id}
@@ -90,9 +93,9 @@ export function FavoritesScreen({ spots, favorites, dark = false, fontSize = 'no
                     <div style={{ fontSize: 13, color: '#6B7280', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {spot?.address ?? '—'}
                     </div>
-                    {spot && (
+                    {spot && distMeters !== null && (
                       <div style={{ fontSize: 13, color: '#0066FF', fontWeight: 600, marginTop: 2 }}>
-                        {formatDistance(spot.distance ?? 0)}
+                        {formatDistance(distMeters)}
                       </div>
                     )}
                   </div>

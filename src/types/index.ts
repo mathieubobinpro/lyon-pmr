@@ -22,7 +22,6 @@ export interface ParkingSpot {
   distance?: number;
 }
 
-// Conservé pour la compatibilité de storage.ts / useFavorites.ts (non exposé dans l'UI)
 export interface Favorite {
   id: string;
   label: string;
@@ -40,4 +39,4 @@ export interface GeocodingResult {
 
 export type FontSize = 'normal' | 'grand' | 'tres-grand';
 
-export type ActiveTab = 'map' | 'list' | 'settings';
+export type ActiveTab = 'map' | 'list' | 'favorites' | 'settings';

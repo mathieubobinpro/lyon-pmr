@@ -15,12 +15,14 @@ import { useGeolocation } from './hooks/useGeolocation';
 import { useGeolocationPermission } from './hooks/useGeolocationPermission';
 import { useNearestSpots } from './hooks/useNearestSpots';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
+import { useFavorites } from './hooks/useFavorites';
 
 import { TabBar } from './components/ui/TabBar';
 import { SplashScreen } from './components/ui/SplashScreen';
 import { GeolocationPrompt } from './components/ui/GeolocationPrompt';
 const MapScreen = lazy(() => import('./components/screens/MapScreen').then((m) => ({ default: m.MapScreen })));
 import { ListScreen } from './components/screens/ListScreen';
+import { FavoritesScreen } from './components/screens/FavoritesScreen';
 import { SettingsScreen } from './components/screens/SettingsScreen';
 import { OfflineBanner } from './components/pwa/OfflineBanner';
 import { UpdateToast } from './components/pwa/UpdateToast';
@@ -44,6 +46,7 @@ export default function App() {
   const { showPrompt: showGeoPrompt, show: showGeoPromptModal, dismiss: dismissGeoPrompt, isLocationDenied } = useGeolocationPermission(geoErrorMsg);
 
   const nearbySpots = useNearestSpots(allSpots, userCoords, 2000);
+  const { favorites, removeFavorite } = useFavorites();
 
   const { needRefresh, updateServiceWorker } = useRegisterSW({
     onRegistered: () => console.info('[Lyon PMR] SW enregistré'),
@@ -115,6 +118,16 @@ export default function App() {
           </Suspense>
         )}
         {tab === 'list' && <ListScreen spots={nearbySpots} dark={dark} fontSize={fontSize} loading={loading} />}
+        {tab === 'favorites' && (
+          <FavoritesScreen
+            spots={allSpots}
+            favorites={favorites}
+            dark={dark}
+            fontSize={fontSize}
+            userCoords={userCoords}
+            onRemoveFavorite={removeFavorite}
+          />
+        )}
         {tab === 'settings' && <SettingsScreen dark={dark} fontSize={fontSize} dataUpdatedAt={dataUpdatedAt} onSetDark={handleSetDark} onSetFontSize={handleSetFontSize} />}
       </div>
 
