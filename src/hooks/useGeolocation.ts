@@ -40,9 +40,28 @@ export function useGeolocation() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { request(); }, []);
 
+  // Appelle getCurrentPosition et recharge la page si l'utilisateur accorde la permission.
+  // Appelle onDenied() si la permission est explicitement refusée.
+  const requestAndReload = useCallback((onDenied?: () => void) => {
+    if (!navigator.geolocation) { onDenied?.(); return; }
+    setState({ status: 'loading' });
+    navigator.geolocation.getCurrentPosition(
+      () => window.location.reload(),
+      (err) => {
+        const msg =
+          err.code === GeolocationPositionError.PERMISSION_DENIED
+            ? 'Permission refusée — utilisation du centre de Lyon'
+            : 'Position indisponible';
+        setState({ status: 'error', message: msg });
+        if (err.code === GeolocationPositionError.PERMISSION_DENIED) onDenied?.();
+      },
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 },
+    );
+  }, []);
+
   // Pendant le loading, on garde les dernières coords connues (pas LYON_CENTER)
   const coords: Coordinates =
     state.status === 'success' ? state.coords : (lastCoords ?? LYON_CENTER);
 
-  return { state, coords, retry: request };
+  return { state, coords, retry: request, requestAndReload };
 }

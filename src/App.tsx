@@ -37,7 +37,7 @@ export default function App() {
   const [locateTrigger, setLocateTrigger] = useState(0);
 
   const isOnline = useOnlineStatus();
-  const { state: geoState, coords: userCoords, retry: retryGeoloc } = useGeolocation();
+  const { state: geoState, coords: userCoords, retry: retryGeoloc, requestAndReload } = useGeolocation();
 
   // Message d'erreur exposé pour le fallback sans API Permissions (vieux Safari)
   const geoErrorMsg = geoState.status === 'error' ? geoState.message : null;
@@ -90,6 +90,13 @@ export default function App() {
     setLocateTrigger((n) => n + 1);
   }, [retryGeoloc]);
 
+  // Demande la permission et recharge la page si accordée.
+  // Si refusée, reset le dismissed flag puis ouvre la modale d'instructions.
+  const handleActivateGeoAndReload = useCallback(() => {
+    storage.setGeolocDismissed(false);
+    requestAndReload(showGeoPromptModal);
+  }, [requestAndReload, showGeoPromptModal]);
+
   return (
     <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', position: 'relative', fontFamily: 'Inter, system-ui, sans-serif', colorScheme: dark ? 'dark' : 'light', background: dark ? '#0F0F12' : '#F5F5F7' }}>
       {showGeoPrompt && <GeolocationPrompt dark={dark} onDismiss={dismissGeoPrompt} />}
@@ -111,6 +118,7 @@ export default function App() {
                 locationDenied={isLocationDenied || geoState.status === 'error'}
                 onLocate={handleLocate}
                 onShowGeoPrompt={showGeoPromptModal}
+                onActivateGeo={handleActivateGeoAndReload}
               />
           </Suspense>
         )}

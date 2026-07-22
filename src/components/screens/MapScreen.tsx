@@ -22,6 +22,8 @@ interface Props {
   onLocate: () => void;
   /** Ré-ouvre la popin de demande de géolocalisation */
   onShowGeoPrompt?: () => void;
+  /** Demande la permission et recharge la page si accordée */
+  onActivateGeo?: () => void;
 }
 
 export function MapScreen({
@@ -35,6 +37,7 @@ export function MapScreen({
   locationDenied = false,
   onLocate,
   onShowGeoPrompt,
+  onActivateGeo,
 }: Props) {
   const [selected, setSelected]         = useState<ParkingSpot | null>(null);
   const [searchMode, setSearchMode]     = useState(false);
@@ -321,6 +324,36 @@ export function MapScreen({
           ) : (
             /* MODE ACCUEIL */
             <div style={{ padding: '0 16px 12px' }}>
+              {/* Banner d'activation géolocalisation */}
+              {locationDenied && onActivateGeo && (
+                <button
+                  onClick={onActivateGeo}
+                  aria-label="Activer la géolocalisation pour trouver les places les plus proches"
+                  style={{
+                    width: '100%', borderRadius: 16, border: 'none', cursor: 'pointer',
+                    background: dark ? '#2A2010' : '#FFFBEB',
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    padding: '12px 16px', marginBottom: 10,
+                    WebkitTapHighlightColor: 'transparent',
+                    boxShadow: `inset 0 0 0 1.5px ${dark ? '#78350F' : '#FCD34D'}`,
+                    textAlign: 'left',
+                  }}
+                  onTouchStart={(e) => { (e.currentTarget as HTMLElement).style.opacity = '0.85'; }}
+                  onTouchEnd={(e)   => { (e.currentTarget as HTMLElement).style.opacity = '1'; }}
+                >
+                  <span style={{ fontSize: 22, flexShrink: 0 }} aria-hidden>📍</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: dark ? '#FCD34D' : '#92400E', marginBottom: 2 }}>
+                      Activer la géolocalisation
+                    </div>
+                    <div style={{ fontSize: 12, color: dark ? '#B45309' : '#B45309', lineHeight: 1.4 }}>
+                      Tap pour autoriser et recharger automatiquement
+                    </div>
+                  </div>
+                  <span style={{ fontSize: 18, color: dark ? '#FCD34D' : '#D97706', flexShrink: 0 }} aria-hidden>›</span>
+                </button>
+              )}
+
               {/* CTA principal */}
               <button
                 onClick={() => nearestSpot && setSelected(nearestSpot)}
