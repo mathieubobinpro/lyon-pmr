@@ -18,34 +18,139 @@ interface Props {
 }
 
 type View = 'checking' | 'activate' | 'activating' | 'denied';
-type Platform = 'ios' | 'android' | 'desktop';
+type OS      = 'ios' | 'android' | 'desktop';
+type Browser = 'safari' | 'chrome' | 'firefox' | 'other';
 
-function detectPlatform(): Platform {
+interface DeviceEnv { os: OS; browser: Browser }
+interface InstructionSet { label: string; steps: string[] }
+
+function detectEnv(): DeviceEnv {
   const ua = navigator.userAgent;
-  if (/iPad|iPhone|iPod/.test(ua) && !/Chrome/.test(ua)) return 'ios';
-  if (/Android/.test(ua)) return 'android';
-  return 'desktop';
+  // iPadOS 13+ se présente comme macOS mais a des touch points
+  const isIOS = /iPad|iPhone|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+
+  if (isIOS) {
+    const browser: Browser = /CriOS/.test(ua) ? 'chrome'
+      : /FxiOS/.test(ua)  ? 'firefox'
+      : /Safari/.test(ua) ? 'safari'
+      : 'other';
+    return { os: 'ios', browser };
+  }
+  if (/Android/.test(ua)) {
+    const browser: Browser = /Firefox/.test(ua) ? 'firefox'
+      : /Chrome/.test(ua) ? 'chrome'
+      : 'other';
+    return { os: 'android', browser };
+  }
+  const browser: Browser = /Firefox/.test(ua) ? 'firefox'
+    : /Chrome/.test(ua) && !/Edg/.test(ua) ? 'chrome'
+    : /Safari/.test(ua) ? 'safari'
+    : 'other';
+  return { os: 'desktop', browser };
 }
 
-const INSTRUCTIONS: Record<Platform, string[]> = {
-  ios: [
-    "Ouvrez l'app Réglages",
-    'Confidentialité et sécurité → Service de localisation',
-    'Sélectionnez Safari (ou Chrome)',
-    "Choisissez \"Lors de l'utilisation de l'app\"",
-    'Revenez ici et rechargez la page',
-  ],
-  android: [
-    "Appuyez sur l'icône 🔒 dans la barre d'adresse",
-    'Autorisations → Localisation → Autoriser',
-    'Rechargez la page',
-  ],
-  desktop: [
-    "Cliquez sur l'icône 🔒 dans la barre d'adresse",
-    'Autorisations du site → Localisation → Autoriser',
-    'Rechargez la page',
-  ],
-};
+function getInstructions({ os, browser }: DeviceEnv): InstructionSet {
+  if (os === 'ios') {
+    if (browser === 'safari') return {
+      label: 'iPhone / iPad · Safari',
+      steps: [
+        "Ouvrez l'app Réglages",
+        'Confidentialité et sécurité → Service de localisation',
+        "Faites défiler jusqu'à Safari",
+        "Choisissez « Lors de l'utilisation »",
+        'Revenez ici et rechargez la page',
+      ],
+    };
+    if (browser === 'chrome') return {
+      label: 'iPhone / iPad · Chrome',
+      steps: [
+        "Ouvrez l'app Réglages",
+        "Faites défiler jusqu'à Chrome",
+        "Localisation → Lors de l'utilisation",
+        'Revenez ici et rechargez la page',
+      ],
+    };
+    if (browser === 'firefox') return {
+      label: 'iPhone / iPad · Firefox',
+      steps: [
+        "Ouvrez l'app Réglages",
+        "Faites défiler jusqu'à Firefox",
+        "Localisation → Lors de l'utilisation",
+        'Revenez ici et rechargez la page',
+      ],
+    };
+    return {
+      label: 'iPhone / iPad',
+      steps: [
+        "Ouvrez l'app Réglages",
+        "Faites défiler jusqu'à votre navigateur dans la liste des apps",
+        "Localisation → Lors de l'utilisation",
+        'Revenez ici et rechargez la page',
+      ],
+    };
+  }
+
+  if (os === 'android') {
+    if (browser === 'chrome') return {
+      label: 'Android · Chrome',
+      steps: [
+        "Appuyez sur l'icône 🔒 dans la barre d'adresse",
+        'Autorisations → Position → Autoriser',
+        'Rechargez la page',
+      ],
+    };
+    if (browser === 'firefox') return {
+      label: 'Android · Firefox',
+      steps: [
+        "Appuyez sur l'icône 🔒 dans la barre d'adresse",
+        'Autorisations → Position → Autoriser',
+        'Rechargez la page',
+      ],
+    };
+    return {
+      label: 'Android',
+      steps: [
+        'Ouvrez les Réglages Android',
+        "Applications → votre navigateur → Autorisations → Position → Autoriser",
+        'Rechargez la page',
+      ],
+    };
+  }
+
+  // desktop
+  if (browser === 'chrome') return {
+    label: 'Chrome',
+    steps: [
+      "Cliquez sur l'icône 🔒 dans la barre d'adresse",
+      'Autorisations du site → Localisation → Autoriser',
+      'Rechargez la page',
+    ],
+  };
+  if (browser === 'firefox') return {
+    label: 'Firefox',
+    steps: [
+      "Cliquez sur l'icône 🔒 dans la barre d'adresse",
+      "Autoriser à utiliser votre position",
+      'Rechargez la page',
+    ],
+  };
+  if (browser === 'safari') return {
+    label: 'Safari',
+    steps: [
+      "Safari → Réglages pour ce site web…",
+      'Localisation → Autoriser',
+      'Rechargez la page',
+    ],
+  };
+  return {
+    label: 'Navigateur',
+    steps: [
+      "Cliquez sur l'icône 🔒 dans la barre d'adresse",
+      "Autorisations / Réglages du site → Localisation → Autoriser",
+      'Rechargez la page',
+    ],
+  };
+}
 
 export function GeolocationPrompt({ dark = false, onDismiss }: Props) {
   // Si l'API Permissions est indisponible (vieux Safari), on démarre directement sur 'activate'
@@ -53,7 +158,8 @@ export function GeolocationPrompt({ dark = false, onDismiss }: Props) {
   const [view, setView] = useState<View>(() =>
     typeof navigator !== 'undefined' && !navigator.permissions ? 'activate' : 'checking'
   );
-  const platform = detectPlatform();
+  const env          = detectEnv();
+  const instructions = getInstructions(env);
 
   // Détermine la vue initiale selon l'état réel de la permission (API disponible uniquement)
   useEffect(() => {
@@ -196,9 +302,12 @@ export function GeolocationPrompt({ dark = false, onDismiss }: Props) {
                 margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 0.8,
               }}>
                 Comment activer
+                <span style={{ fontWeight: 500, textTransform: 'none', opacity: 0.8 }}>
+                  {' · '}{instructions.label}
+                </span>
               </p>
               <ol style={{ margin: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 5 }}>
-                {INSTRUCTIONS[platform].map((step, i) => (
+                {instructions.steps.map((step, i) => (
                   <li key={i} style={{ fontSize: 13, lineHeight: 1.4, color: dark ? '#D0D0D0' : '#374151' }}>
                     {step}
                   </li>
