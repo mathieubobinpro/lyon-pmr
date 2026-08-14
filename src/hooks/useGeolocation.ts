@@ -37,7 +37,7 @@ export function useGeolocation() {
     );
   }, []);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps,react-hooks/set-state-in-effect
   useEffect(() => { request(); }, []);
 
   // Pendant le loading, on garde les dernières coords connues (pas LYON_CENTER)

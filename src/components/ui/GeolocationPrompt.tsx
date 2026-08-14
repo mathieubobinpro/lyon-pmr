@@ -48,16 +48,16 @@ const INSTRUCTIONS: Record<Platform, string[]> = {
 };
 
 export function GeolocationPrompt({ dark = false, onDismiss }: Props) {
-  const [view, setView] = useState<View>('checking');
+  // Si l'API Permissions est indisponible (vieux Safari), on démarre directement sur 'activate'
+  // pour éviter un setState synchrone dans l'effet ci-dessous.
+  const [view, setView] = useState<View>(() =>
+    typeof navigator !== 'undefined' && !navigator.permissions ? 'activate' : 'checking'
+  );
   const platform = detectPlatform();
 
-  // Détermine la vue initiale selon l'état réel de la permission
+  // Détermine la vue initiale selon l'état réel de la permission (API disponible uniquement)
   useEffect(() => {
-    if (!navigator.permissions) {
-      // API Permissions indisponible (vieux Safari) → on tente quand même l'activation
-      setView('activate');
-      return;
-    }
+    if (!navigator.permissions) return; // Déjà initialisé à 'activate' via le lazy initializer
     navigator.permissions
       .query({ name: 'geolocation' })
       .then((result) => setView(result.state === 'denied' ? 'denied' : 'activate'))

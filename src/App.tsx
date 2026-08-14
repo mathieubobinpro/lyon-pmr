@@ -71,7 +71,6 @@ export default function App() {
       setLoading(false);
     })();
     storage.bumpVisitCount();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSetDark = useCallback((v: boolean) => {
