@@ -1,14 +1,23 @@
 /**
- * Modale affichée quand la permission de géolocalisation est refusée.
- * Détecte la plateforme et affiche des instructions spécifiques.
- * Ne s'affiche jamais si l'utilisateur a déjà choisi "Continuer sans".
+ * Modale de géolocalisation en deux temps :
+ *
+ * 1. Vérifie l'état de la permission via l'API Permissions (si disponible).
+ * 2. Si "prompt" (jamais demandé) ou API indisponible → propose "Activer ma position"
+ *    qui déclenche la dialog native du navigateur.
+ *    → Succès : window.location.reload()
+ *    → Refus   : bascule sur la vue instructions manuelles
+ * 3. Si "denied" (déjà refusé) → affiche directement les instructions manuelles
+ *    (la dialog native ne peut plus réapparaître sans action dans les Réglages).
  */
+
+import { useState, useEffect } from 'react';
 
 interface Props {
   dark?: boolean;
   onDismiss: () => void;
 }
 
+type View = 'checking' | 'activate' | 'activating' | 'denied';
 type Platform = 'ios' | 'android' | 'desktop';
 
 function detectPlatform(): Platform {
@@ -20,30 +29,57 @@ function detectPlatform(): Platform {
 
 const INSTRUCTIONS: Record<Platform, string[]> = {
   ios: [
-    'Ouvrez l\'app Réglages',
+    "Ouvrez l'app Réglages",
     'Confidentialité et sécurité → Service de localisation',
     'Sélectionnez Safari (ou Chrome)',
-    'Choisissez "Lors de l\'utilisation de l\'app"',
+    "Choisissez \"Lors de l'utilisation de l'app\"",
     'Revenez ici et rechargez la page',
   ],
   android: [
-    'Appuyez sur l\'icône 🔒 dans la barre d\'adresse',
+    "Appuyez sur l'icône 🔒 dans la barre d'adresse",
     'Autorisations → Localisation → Autoriser',
     'Rechargez la page',
   ],
   desktop: [
-    'Cliquez sur l\'icône 🔒 dans la barre d\'adresse',
+    "Cliquez sur l'icône 🔒 dans la barre d'adresse",
     'Autorisations du site → Localisation → Autoriser',
     'Rechargez la page',
   ],
 };
 
 export function GeolocationPrompt({ dark = false, onDismiss }: Props) {
+  const [view, setView] = useState<View>('checking');
   const platform = detectPlatform();
-  const steps    = INSTRUCTIONS[platform];
 
+  // Détermine la vue initiale selon l'état réel de la permission
+  useEffect(() => {
+    if (!navigator.permissions) {
+      // API Permissions indisponible (vieux Safari) → on tente quand même l'activation
+      setView('activate');
+      return;
+    }
+    navigator.permissions
+      .query({ name: 'geolocation' })
+      .then((result) => setView(result.state === 'denied' ? 'denied' : 'activate'))
+      .catch(() => setView('activate'));
+  }, []);
+
+  const handleActivate = () => {
+    if (!navigator.geolocation) { setView('denied'); return; }
+    setView('activating');
+    navigator.geolocation.getCurrentPosition(
+      () => window.location.reload(),
+      (err) => {
+        setView(
+          err.code === GeolocationPositionError.PERMISSION_DENIED ? 'denied' : 'activate',
+        );
+      },
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 },
+    );
+  };
+
+  // ── Conteneur commun (carte modale) ──────────────────────────────────────────
   return (
-    /* Backdrop semi-transparent avec blur */
     <div
       role="dialog"
       aria-modal="true"
@@ -55,10 +91,9 @@ export function GeolocationPrompt({ dark = false, onDismiss }: Props) {
         backdropFilter: 'blur(6px)',
         WebkitBackdropFilter: 'blur(6px)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: '24px 16px',
+        padding: '24px 16px',
       }}
     >
-      {/* Carte modale */}
       <div style={{
         width: '100%', maxWidth: 360,
         background: dark ? '#1E1E1E' : '#FFFFFF',
@@ -68,7 +103,7 @@ export function GeolocationPrompt({ dark = false, onDismiss }: Props) {
         display: 'flex', flexDirection: 'column', alignItems: 'center',
       }}>
 
-        {/* Icône */}
+        {/* ── Icône pin commune ── */}
         <div style={{
           width: 52, height: 52, borderRadius: '50%',
           background: '#EEF4FF',
@@ -78,88 +113,151 @@ export function GeolocationPrompt({ dark = false, onDismiss }: Props) {
           📍
         </div>
 
-        {/* Titre */}
-        <h2
-          id="geoloc-title"
-          style={{
-            fontSize: 18, fontWeight: 800, textAlign: 'center',
-            color: dark ? '#F0F0F0' : '#1A1A1A',
-            margin: '0 0 6px',
-          }}
-        >
-          Activez votre localisation
-        </h2>
+        {/* ── checking : détection en cours ── */}
+        {view === 'checking' && (
+          <>
+            <h2 id="geoloc-title" style={titleStyle(dark)}>Localisation…</h2>
+            <div style={{
+              width: 28, height: 28, borderRadius: '50%', marginTop: 8,
+              border: `3px solid ${dark ? '#334' : '#E0E7FF'}`,
+              borderTopColor: '#2563EB',
+              animation: 'spin 0.8s linear infinite',
+            }} />
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+          </>
+        )}
 
-        {/* Description */}
-        <p
-          id="geoloc-desc"
-          style={{
-            fontSize: 13, color: '#6B7280', textAlign: 'center',
-            margin: '0 0 16px', lineHeight: 1.5,
-          }}
-        >
-          Pour trouver les places PMR les plus proches de vous, l'app a besoin de votre position.
-        </p>
+        {/* ── activate : permission "prompt" ou API indisponible ── */}
+        {view === 'activate' && (
+          <>
+            <h2 id="geoloc-title" style={titleStyle(dark)}>
+              Autoriser la localisation
+            </h2>
+            <p id="geoloc-desc" style={descStyle}>
+              Pour trouver les places PMR les plus proches, l'app a besoin de votre position.
+              Aucune donnée n'est conservée.
+            </p>
 
-        {/* Instructions plateforme */}
-        <div style={{
-          width: '100%',
-          background: dark ? '#2A2A2A' : '#F5F5F7',
-          borderRadius: 12, padding: '12px 14px',
-          marginBottom: 16,
-        }}>
-          <p style={{
-            fontSize: 10, fontWeight: 700, color: '#6B7280',
-            margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 0.8,
-          }}>
-            Comment activer
-          </p>
-          <ol style={{ margin: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 5 }}>
-            {steps.map((step, i) => (
-              <li key={i} style={{
-                fontSize: 13, lineHeight: 1.4,
-                color: dark ? '#D0D0D0' : '#374151',
+            <button
+              onClick={handleActivate}
+              aria-label="Autoriser la localisation"
+              style={primaryBtnStyle}
+              onTouchStart={(e) => { (e.currentTarget as HTMLElement).style.opacity = '0.9'; }}
+              onTouchEnd={(e)   => { (e.currentTarget as HTMLElement).style.opacity = '1'; }}
+            >
+              Activer ma position
+            </button>
+
+            <button
+              onClick={onDismiss}
+              aria-label="Continuer sans localisation"
+              style={secondaryBtnStyle(dark)}
+            >
+              Continuer sans localisation
+            </button>
+          </>
+        )}
+
+        {/* ── activating : dialog native ouverte, en attente de réponse ── */}
+        {view === 'activating' && (
+          <>
+            <h2 id="geoloc-title" style={titleStyle(dark)}>Activation en cours…</h2>
+            <p id="geoloc-desc" style={descStyle}>
+              Autorisez la localisation dans la fenêtre qui vient de s'afficher.
+            </p>
+            <div style={{
+              width: 36, height: 36, borderRadius: '50%', marginTop: 4,
+              border: `3px solid ${dark ? '#334' : '#E0E7FF'}`,
+              borderTopColor: '#2563EB',
+              animation: 'spin 0.8s linear infinite',
+            }} />
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+          </>
+        )}
+
+        {/* ── denied : permission déjà refusée → instructions manuelles ── */}
+        {view === 'denied' && (
+          <>
+            <h2 id="geoloc-title" style={titleStyle(dark)}>
+              Activez votre localisation
+            </h2>
+            <p id="geoloc-desc" style={descStyle}>
+              La permission a été refusée. Suivez ces étapes pour la réactiver dans vos Réglages.
+            </p>
+
+            <div style={{
+              width: '100%',
+              background: dark ? '#2A2A2A' : '#F5F5F7',
+              borderRadius: 12, padding: '12px 14px',
+              marginBottom: 16,
+            }}>
+              <p style={{
+                fontSize: 10, fontWeight: 700, color: '#6B7280',
+                margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 0.8,
               }}>
-                {step}
-              </li>
-            ))}
-          </ol>
-        </div>
+                Comment activer
+              </p>
+              <ol style={{ margin: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 5 }}>
+                {INSTRUCTIONS[platform].map((step, i) => (
+                  <li key={i} style={{ fontSize: 13, lineHeight: 1.4, color: dark ? '#D0D0D0' : '#374151' }}>
+                    {step}
+                  </li>
+                ))}
+              </ol>
+            </div>
 
-        {/* CTA primaire */}
-        <button
-          onClick={() => window.location.reload()}
-          aria-label="Recharger la page après avoir activé la localisation"
-          style={{
-            width: '100%', height: 48, borderRadius: 14,
-            border: 'none', cursor: 'pointer',
-            background: '#0066FF', color: '#FFFFFF',
-            fontSize: 15, fontWeight: 700,
-            marginBottom: 8,
-            WebkitTapHighlightColor: 'transparent',
-          }}
-          onTouchStart={(e) => { (e.currentTarget as HTMLElement).style.opacity = '0.9'; }}
-          onTouchEnd={(e)   => { (e.currentTarget as HTMLElement).style.opacity = '1'; }}
-        >
-          J'ai activé la localisation → Recharger
-        </button>
+            <button
+              onClick={() => window.location.reload()}
+              aria-label="Recharger la page après avoir activé la localisation"
+              style={primaryBtnStyle}
+              onTouchStart={(e) => { (e.currentTarget as HTMLElement).style.opacity = '0.9'; }}
+              onTouchEnd={(e)   => { (e.currentTarget as HTMLElement).style.opacity = '1'; }}
+            >
+              J'ai activé la localisation → Recharger
+            </button>
 
-        {/* CTA secondaire */}
-        <button
-          onClick={onDismiss}
-          aria-label="Continuer sans localisation"
-          style={{
-            width: '100%', height: 42, borderRadius: 12,
-            cursor: 'pointer', background: 'transparent',
-            border: `1.5px solid ${dark ? '#333' : '#E5E7EB'}`,
-            color: dark ? '#AAA' : '#6B7280',
-            fontSize: 14, fontWeight: 500,
-            WebkitTapHighlightColor: 'transparent',
-          }}
-        >
-          Continuer sans localisation
-        </button>
+            <button
+              onClick={onDismiss}
+              aria-label="Continuer sans localisation"
+              style={secondaryBtnStyle(dark)}
+            >
+              Continuer sans localisation
+            </button>
+          </>
+        )}
+
       </div>
     </div>
   );
 }
+
+// ── Styles partagés ────────────────────────────────────────────────────────────
+
+const titleStyle = (dark: boolean): React.CSSProperties => ({
+  fontSize: 18, fontWeight: 800, textAlign: 'center',
+  color: dark ? '#F0F0F0' : '#1A1A1A',
+  margin: '0 0 6px',
+});
+
+const descStyle: React.CSSProperties = {
+  fontSize: 13, color: '#6B7280', textAlign: 'center',
+  margin: '0 0 16px', lineHeight: 1.5,
+};
+
+const primaryBtnStyle: React.CSSProperties = {
+  width: '100%', height: 48, borderRadius: 14,
+  border: 'none', cursor: 'pointer',
+  background: '#0066FF', color: '#FFFFFF',
+  fontSize: 15, fontWeight: 700,
+  marginBottom: 8,
+  WebkitTapHighlightColor: 'transparent',
+};
+
+const secondaryBtnStyle = (dark: boolean): React.CSSProperties => ({
+  width: '100%', height: 42, borderRadius: 12,
+  cursor: 'pointer', background: 'transparent',
+  border: `1.5px solid ${dark ? '#333' : '#E5E7EB'}`,
+  color: dark ? '#AAA' : '#6B7280',
+  fontSize: 14, fontWeight: 500,
+  WebkitTapHighlightColor: 'transparent',
+});
