@@ -63,7 +63,9 @@ export function useGeolocationPermission(geoErrorMessage: string | null) {
     if (storage.getGeolocDismissed()) return;
 
     if (geoErrorMessage.includes('Permission refusée')) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDenied(true);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowPrompt(true);
     }
   }, [geoErrorMessage]);

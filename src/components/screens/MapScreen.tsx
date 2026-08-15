@@ -53,6 +53,7 @@ export function MapScreen({
 
   // Recherche d'adresse avec debounce 300ms
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setActiveIdx(-1);
     if (searchVal.length < 3) { setResults([]); return; }
     const t = setTimeout(async () => {
@@ -64,7 +65,14 @@ export function MapScreen({
     return () => clearTimeout(t);
   }, [searchVal]);
 
-  // Fermeture au clic en dehors du panel de recherche
+  const closeSearch = useCallback(() => {
+    setSearchMode(false);
+    setSearchVal('');
+    setResults([]);
+    setActiveIdx(-1);
+  }, []);
+
+  // Fermeture au clic en dehors du panel de recherche — closeSearch déclaré avant cet effet
   useEffect(() => {
     if (!searchMode) return;
     const handler = (e: MouseEvent) => {
@@ -74,14 +82,7 @@ export function MapScreen({
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
-  }, [searchMode]);
-
-  const closeSearch = useCallback(() => {
-    setSearchMode(false);
-    setSearchVal('');
-    setResults([]);
-    setActiveIdx(-1);
-  }, []);
+  }, [searchMode, closeSearch]);
 
   const selectResult = useCallback((r: GeocodingResult) => {
     setSearchVal(r.label);
