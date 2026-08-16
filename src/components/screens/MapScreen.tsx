@@ -3,7 +3,6 @@ import { Crosshair, Search, X, ChevronLeft } from 'lucide-react';
 import type { ParkingSpot, Coordinates, FontSize } from '../../types';
 import { MapView } from '../map/MapView';
 import { DetailSheet } from '../ui/DetailSheet';
-import { PMRSymbol } from '../ui/PMRSymbol';
 import { searchAddress } from '../../api/ban';
 import type { GeocodingResult } from '../../types';
 
@@ -341,7 +340,13 @@ export function MapScreen({
                 onTouchStart={(e) => { (e.currentTarget as HTMLElement).style.opacity = '0.9'; }}
                 onTouchEnd={(e) =>   { (e.currentTarget as HTMLElement).style.opacity = loading ? '0.6' : '1'; }}
               >
-                <PMRSymbol size={28} color="#FFFFFF" />
+                <div style={{
+                  width: 30, height: 30, borderRadius: '50%',
+                  border: '2.5px solid #FFFFFF',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                }}>
+                  <span style={{ fontSize: 16, fontWeight: 900, color: '#FFFFFF', lineHeight: 1, fontFamily: 'system-ui,-apple-system,sans-serif' }}>P</span>
+                </div>
                 <span>Place la plus proche</span>
               </button>
 
