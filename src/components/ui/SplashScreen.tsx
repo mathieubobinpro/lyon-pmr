@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { PMRSymbol } from './PMRSymbol';
 
 interface Props {
   onDone: () => void;
@@ -24,15 +23,17 @@ export function SplashScreen({ onDone }: Props) {
         animation: 'fadeIn 0.3s ease',
       }}
     >
-      {/* Logo pulsé */}
+      {/* P dans un cercle blanc */}
       <div style={{
-        width: 100, height: 100, borderRadius: 30,
-        background: 'rgba(255,255,255,0.15)',
+        width: 80, height: 80, borderRadius: '50%',
+        border: '3px solid #FFFFFF',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        marginBottom: 24,
-        animation: 'pulse 1.2s ease-in-out infinite',
+        marginBottom: 20,
       }}>
-        <PMRSymbol size={56} color="#FFFFFF" />
+        <span style={{
+          fontSize: 40, fontWeight: 900, color: '#FFFFFF',
+          lineHeight: 1, fontFamily: 'system-ui, -apple-system, sans-serif',
+        }}>P</span>
       </div>
 
       <div style={{ fontSize: 34, fontWeight: 800, color: '#FFFFFF', letterSpacing: -0.5 }}>

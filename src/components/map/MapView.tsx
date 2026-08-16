@@ -3,8 +3,6 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import Supercluster, { type ClusterProperties } from 'supercluster';
 import type { ParkingSpot, Coordinates } from '../../types';
-import { PMRSymbol } from '../ui/PMRSymbol';
-import { renderToStaticMarkup } from 'react-dom/server';
 
 interface Props {
   spots: ParkingSpot[];
@@ -16,8 +14,11 @@ interface Props {
   dark?: boolean;
 }
 
-const TILE_URL      = 'https://{a-d}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
-const TILE_URL_DARK = 'https://{a-d}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+const pinLabel = (selected: boolean) =>
+  `<span style="font-size:17px;font-weight:900;color:${selected ? '#FFF' : '#0066FF'};line-height:1;font-family:system-ui,-apple-system,sans-serif;">P</span>`;
+
+const TILE_URL      = 'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png';
+const TILE_URL_DARK = 'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png';
 const INITIAL_ZOOM  = 14;
 
 // Tailles des cercles de cluster (px)
@@ -56,7 +57,7 @@ export function MapView({ spots, userCoords, selectedSpot, onSelectSpot, locateT
         sources: {
           carto: {
             type: 'raster',
-            tiles: [(dark ? TILE_URL_DARK : TILE_URL).replace('{a-d}', 'a')],
+            tiles: [dark ? TILE_URL_DARK : TILE_URL],
             tileSize: 256,
             attribution:
               '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/">CARTO</a>',
@@ -173,9 +174,7 @@ export function MapView({ spots, userCoords, selectedSpot, onSelectSpot, locateT
           el.style.boxShadow  = isSelected
             ? '0 0 0 3px rgba(0,102,255,0.3), 0 4px 12px rgba(0,102,255,0.4)'
             : '0 2px 8px rgba(0,0,0,0.2)';
-          el.innerHTML = renderToStaticMarkup(
-            <PMRSymbol size={22} color={isSelected ? '#FFFFFF' : '#0066FF'} />,
-          );
+          el.innerHTML = pinLabel(isSelected);
           return;
         }
 
