@@ -193,9 +193,7 @@ export function MapView({ spots, userCoords, selectedSpot, onSelectSpot, locateT
         el.setAttribute('role', 'button');
         el.setAttribute('aria-label', `Place PMR — ${spot.address}`);
         el.setAttribute('tabindex', '0');
-        el.innerHTML = renderToStaticMarkup(
-          <PMRSymbol size={22} color={isSelected ? '#FFFFFF' : '#0066FF'} />,
-        );
+        el.innerHTML = pinLabel(isSelected);
 
         el.addEventListener('click',   () => onSelectSpot(spot));
         el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') onSelectSpot(spot); });
