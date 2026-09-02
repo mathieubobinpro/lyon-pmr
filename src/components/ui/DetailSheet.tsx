@@ -66,25 +66,27 @@ export function DetailSheet({ spot, dark = false, fontSize = 'normal', userCoord
           <Badge label={spot.configuration === 'unknown' ? 'Voirie' : spot.configuration} variant="primary" dark={dark} />
         </div>
 
-        {/* CTA principal — 56px, cible principale (min 44px a11y) */}
-        <button
-          onClick={() => setNavOpen(true)}
-          aria-label="J'y vais — choisir une application de navigation"
-          style={{
-            width: '100%', height: 56, borderRadius: 16, border: 'none', cursor: 'pointer',
-            background: '#0066FF', color: '#FFFFFF',
-            fontSize: Math.round(16 * sc), fontWeight: 700,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            boxShadow: '0 4px 16px rgba(0,102,255,0.35)',
-            marginBottom: 12,
-            WebkitTapHighlightColor: 'transparent',
-          }}
-          onTouchStart={(e) => { (e.currentTarget as HTMLElement).style.opacity = '0.9'; }}
-          onTouchEnd={(e) =>   { (e.currentTarget as HTMLElement).style.opacity = '1'; }}
-        >
-          <Navigation size={19} aria-hidden />
-          <span>J'y vais !</span>
-        </button>
+        {/* CTA principal — 56px, cible principale (min 44px a11y) — masqué une fois le menu d'apps ouvert */}
+        {!navOpen && (
+          <button
+            onClick={() => setNavOpen(true)}
+            aria-label="J'y vais — choisir une application de navigation"
+            style={{
+              width: '100%', height: 56, borderRadius: 16, border: 'none', cursor: 'pointer',
+              background: '#0066FF', color: '#FFFFFF',
+              fontSize: Math.round(16 * sc), fontWeight: 700,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              boxShadow: '0 4px 16px rgba(0,102,255,0.35)',
+              marginBottom: 12,
+              WebkitTapHighlightColor: 'transparent',
+            }}
+            onTouchStart={(e) => { (e.currentTarget as HTMLElement).style.opacity = '0.9'; }}
+            onTouchEnd={(e) =>   { (e.currentTarget as HTMLElement).style.opacity = '1'; }}
+          >
+            <Navigation size={19} aria-hidden />
+            <span>J'y vais !</span>
+          </button>
+        )}
 
         {/* Fermer */}
         <div style={{ marginBottom: 16 }}>
