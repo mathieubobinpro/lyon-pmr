@@ -17,9 +17,12 @@ interface Props {
 const pinLabel = (selected: boolean) =>
   `<span style="font-size:17px;font-weight:900;color:${selected ? '#FFF' : '#0066FF'};line-height:1;font-family:system-ui,-apple-system,sans-serif;">P</span>`;
 
-const TILE_URL      = 'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png';
-const TILE_URL_DARK = 'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png';
-const INITIAL_ZOOM  = 14;
+// CARTO's free basemap tiles (basemaps.cartocdn.com) now require an API key and
+// serve a watermarked "API key required" tile otherwise, so we use OpenFreeMap
+// instead — a free, key-less vector tile service. There's no dedicated dark
+// style, so dark mode is faked with a CSS filter on the canvas (see below).
+const STYLE_URL    = 'https://tiles.openfreemap.org/styles/positron';
+const INITIAL_ZOOM = 14;
 
 // Tailles des cercles de cluster (px)
 const clusterSize = (count: number) => (count < 10 ? 36 : count < 50 ? 44 : 54);
@@ -52,23 +55,19 @@ export function MapView({ spots, userCoords, selectedSpot, onSelectSpot, locateT
 
     const map = new maplibregl.Map({
       container: containerRef.current,
-      style: {
-        version: 8,
-        sources: {
-          carto: {
-            type: 'raster',
-            tiles: [dark ? TILE_URL_DARK : TILE_URL],
-            tileSize: 256,
-            attribution:
-              '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/">CARTO</a>',
-          },
-        },
-        layers: [{ id: 'carto-tiles', type: 'raster', source: 'carto' }],
-      },
+      style: STYLE_URL,
       center: [userCoords.lng, userCoords.lat],
       zoom: INITIAL_ZOOM,
+      attributionControl: false,
     });
 
+    map.addControl(
+      new maplibregl.AttributionControl({
+        compact: true,
+        customAttribution:
+          '© <a href="https://openfreemap.org">OpenFreeMap</a> © <a href="https://www.openmaptiles.org/">OpenMapTiles</a> © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      }),
+    );
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-left');
     mapRef.current = map;
 
@@ -80,6 +79,16 @@ export function MapView({ spots, userCoords, selectedSpot, onSelectSpot, locateT
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Fausse le mode sombre par un filtre CSS sur le canevas (les tuiles OpenFreeMap
+  // n'existent qu'en clair) ; les marqueurs, hors du conteneur du canevas, ne sont pas affectés.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    map.getCanvasContainer().style.filter = dark
+      ? 'invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9)'
+      : '';
+  }, [dark]);
 
   // Marqueur utilisateur (point bleu pulsé)
   useEffect(() => {
