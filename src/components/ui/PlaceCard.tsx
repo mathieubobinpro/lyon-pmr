@@ -1,7 +1,6 @@
 import { ChevronRight } from 'lucide-react';
 import type { ParkingSpot, FontSize } from '../../types';
 import { formatDistance, formatWalkTime } from '../../lib/distance';
-import { PMRSymbol } from './PMRSymbol';
 
 interface Props {
   spot: ParkingSpot;
@@ -56,7 +55,12 @@ export function PlaceCard({ spot, onSelect, dark = false, fontSize = 'normal' }:
         background: '#EEF4FF',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
-        <PMRSymbol size={26} color="#0066FF" />
+        <span
+          aria-hidden
+          style={{ fontSize: 24, fontWeight: 900, color: '#0066FF', lineHeight: 1, fontFamily: 'system-ui, -apple-system, sans-serif' }}
+        >
+          P
+        </span>
       </div>
 
       {/* Contenu centre */}
