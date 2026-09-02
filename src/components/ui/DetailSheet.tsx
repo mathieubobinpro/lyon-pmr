@@ -36,7 +36,7 @@ export function DetailSheet({ spot, dark = false, fontSize = 'normal', userCoord
         {/* En-tête : distance + bouton fermer */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 4 }}>
           <div>
-            <div style={{ fontSize: Math.round(52 * Math.min(sc, 1.1)), fontWeight: 800, color: distColor, lineHeight: 1 }}>
+            <div style={{ fontSize: Math.round(32 * Math.min(sc, 1.1)), fontWeight: 800, color: distColor, lineHeight: 1 }}>
               {distLabel}
             </div>
           </div>
@@ -66,15 +66,15 @@ export function DetailSheet({ spot, dark = false, fontSize = 'normal', userCoord
           <Badge label={spot.configuration === 'unknown' ? 'Voirie' : spot.configuration} variant="primary" dark={dark} />
         </div>
 
-        {/* CTA principal — 72px, cible principale */}
+        {/* CTA principal — 56px, cible principale (min 44px a11y) */}
         <button
           onClick={() => setNavOpen(true)}
           aria-label="J'y vais — choisir une application de navigation"
           style={{
-            width: '100%', height: 72, borderRadius: 20, border: 'none', cursor: 'pointer',
+            width: '100%', height: 56, borderRadius: 16, border: 'none', cursor: 'pointer',
             background: '#0066FF', color: '#FFFFFF',
-            fontSize: Math.round(18 * sc), fontWeight: 700,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+            fontSize: Math.round(16 * sc), fontWeight: 700,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
             boxShadow: '0 4px 16px rgba(0,102,255,0.35)',
             marginBottom: 12,
             WebkitTapHighlightColor: 'transparent',
@@ -82,7 +82,7 @@ export function DetailSheet({ spot, dark = false, fontSize = 'normal', userCoord
           onTouchStart={(e) => { (e.currentTarget as HTMLElement).style.opacity = '0.9'; }}
           onTouchEnd={(e) =>   { (e.currentTarget as HTMLElement).style.opacity = '1'; }}
         >
-          <Navigation size={22} aria-hidden />
+          <Navigation size={19} aria-hidden />
           <span>J'y vais !</span>
         </button>
 
